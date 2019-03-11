@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="bootstrap.min.css" >
+	 <style>
+		.numbtn, .cmdbtn {
+			width: 33%;
+		}
+	 </style>
+    <title>Klávesnice</title>
+  </head>
+  <body>
+        <main class="container">
+
+		<div class="alert alert-danger" style="display: none" id="alert-fail">Odeslání se nezdařilo</div>
+		<div style="" class="text-center">
+		
+			<span id="num" style="font-size: 8em;">000</span>  <span id="part" style="font-size: 5em;">00</span>
+		
+		</div>
+	
+		<p class="btn-group" style="width:100%">
+			<a href="#" class="btn btn-lg btn-outline-primary numbtn">1</a>
+			<a href="#" class="btn btn-lg btn-outline-primary numbtn">2</a>
+			<a href="#" class="btn btn-lg btn-outline-primary numbtn">3</a>
+		</p>
+		
+		
+		<p class="btn-group" style="width:100%">
+			<a href="#" class="btn btn-lg btn-outline-primary numbtn">4</a>
+			<a href="#" class="btn btn-lg btn-outline-primary numbtn">5</a>
+			<a href="#" class="btn btn-lg btn-outline-primary numbtn">6</a>
+		</p>
+		
+		
+		<p class="btn-group" style="width:100%">
+			<a href="#" class="btn btn-lg btn-outline-primary numbtn">7</a>
+			<a href="#" class="btn btn-lg btn-outline-primary numbtn">8</a>
+			<a href="#" class="btn btn-lg btn-outline-primary numbtn">9</a>
+		</p>
+		
+		
+		<p class="btn-group" style="width:100%">
+			<a href="#" class="btn btn-lg btn-outline-primary numbtn">0</a>
+			<a href="#" id="send" class="btn btn-lg btn-danger cmdbtn">Odeslat</a>
+			<a href="#" id="incsend" class="btn btn-lg btn-success cmdbtn" style="width: 16.5%">+1 S</a>
+			<a href="#" class="btn btn-lg btn-outline-primary numbtn" style="width: 16.5%">00</a>
+		</p>
+		
+		
+		</main>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="jquery-3.3.1.min.js"></script>
+    <script src="popper.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+	
+	<script>
+	value = 0;
+	part = 0;
+	data = "00000";
+	
+	function updateView() {
+		if(data.length == 5) {
+			$("#num").text(data.substr(0, 3));
+			$("#part").text(data.substr(3, 2));
+		}
+		else {
+			$("#num").text("ERR");
+			$("#part").text("ERR");
+		}
+		
+	}
+	
+	function send() {
+		console.log("to send " + data)
+		$("#alert-fail").hide();
+		$.get( "/display_" + data, function( data ) {
+  if(data != "OK") {
+  console.log("resp: " + data)
+	$("#alert-fail").show();
+	}
+   
+}).fail(function() {
+    $("#alert-fail").show();
+  });
+  
+	}
+	
+	$(".numbtn").click(function () {
+		txt = $(this).text();
+		data = data.substr(txt.length) + txt;
+		
+		updateView();
+		return false;
+		
+	});
+	
+	$("#send").click(function () {
+		send();		
+	});
+	
+	$("#incsend").click(function () {
+		num = data.substr(0,3);
+		part = Number(data.substr(3, 2)) + 1; 
+		part = "000" + part;
+		
+		part = part.substr(part.length - 2); // posledni 2 znaky
+		data = num + part;
+		updateView();
+		send();
+		
+	});
+	
+	$("document").ready(function (){
+		
+	});
+	</script>
+  </body>
+</html>
