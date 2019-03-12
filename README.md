@@ -50,7 +50,7 @@ Raspbian obsahuje nástroj ``sudo raspi-config``, který umožňuje nastavit cel
   - připojit dočasně k internetu přes WiFi
   - nastavit rozlišení obrazovky
 
-Dále je potřeba do systému doinstalovat tyto nástroje (pygame je hlavní knihovna pro zobrazování, poslední dva nástroje jsou pro vytvoření WiFi hot-spotu a mc je určeno pro jednodušší správu):
+Dále je potřeba do systému doinstalovat tyto nástroje (pygame je hlavní knihovna pro zobrazování, pyserial pro komunikaci přes UART modul, poslední dva nástroje jsou pro vytvoření WiFi hot-spotu a mc je určeno pro jednodušší správu):
 
 
     sudo apt-get install python-pygame python-pyserial mc dnsmasq hostapd
@@ -156,6 +156,7 @@ Nyní potřebné služby spustíme
 
 Ve své konfiguraci jsem měl problém, že služba *hostapd* nešla spustit, protože soubor `/etc/systemd/system/hostapd.service` byl nulový. Musel jsem jej smazat a vytvořit nový symbolický odkaz:
 
+    cd /etc/systemd/system/
     sudo rm hostapd.service
     sudo ln -s /lib/systemd/system/hostapd.service hostapd.service
 
