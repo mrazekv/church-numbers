@@ -27,8 +27,10 @@ class displayThread(threading.Thread):
         self.disoff = None   # cas vypnuti displeje
         self.pwr_is_off = False # displej je vypnuty
         self.offlimit = 20*60 # limit pro vypnuti displeje v sekundach, doporucuji cca 30 minut kvuli moznemu zobrazeni modre obrazovky
+        self.totlimit = 90*60 # limit necinnosti v sekundach - 1.5 hodiny
+        self.last_change = time.time()
     
-        if 1:
+        if 0:
             # zlute pozadi, tmavy text
             self.config = {
                 "background" : rgb("f0e68c"), # zluta 
@@ -36,9 +38,19 @@ class displayThread(threading.Thread):
                 "part" : rgb("666666"),
                 "file" : rgb("666666"),
             }
- 
-        elif 1:
-            # svetle pozadi, zeleny text
+
+	elif 1:
+            # zlute pozadi, tmavy text + oranzova sloka
+            self.config = {
+                "background" : rgb("f0e68c"), # zluta 
+                "number" : rgb("333333"),
+		"part" : rgb("cc3300"),
+                "file" : rgb("666666"),
+            }
+
+
+        elif 0:
+	    # svetle pozadi, zeleny text
             self.config = {
                 "background" : rgb("#ffffe6"),
                 "number" : rgb("006600"),
@@ -46,7 +58,7 @@ class displayThread(threading.Thread):
                 "file" : rgb("666666"),
             }
     
-        elif 1:
+        elif 0:
             # tmave pozadi, zeleny text
             self.config = {
                 "background" : rgb("#000000"),
@@ -73,34 +85,36 @@ class displayThread(threading.Thread):
         nmr = int(value[:3])
         part = int(value[3:])
 
-        if nmr == 1 and change_name: 
-            self.file = ""
-            self.fileset = False
-            nmr = oldnmr
-            part = oldpart
-        if nmr == 2 and change_name:
-            self.file = u"Sloupský zpěvník"
-            self.fileset = True
-            nmr = oldnmr
-            part = oldpart
-        if nmr == 3 and change_name:
-            self.file = "Hosana"
-            self.fileset = True
-            nmr = oldnmr
-            part = oldpart
+ #       if nmr == 1 and change_name: 
+ #           self.file = ""
+ #           self.fileset = False
+ #           nmr = oldnmr
+ #           part = oldpart
+ #       if nmr == 2 and change_name:
+ #           self.file = u"Sloupský zpěvník"
+ #           self.fileset = True
+ #           nmr = oldnmr
+ #           part = oldpart
+ #       if nmr == 3 and change_name:
+ #           self.file = "Hosana"
+ #           self.fileset = True
+ #           nmr = oldnmr
+ #           part = oldpart
 
         if not self.fileset:
             # logika sloupskeho zpevniku
-            if nmr in range(345, 390) + range(789, 800):
+            if nmr in range(150, 152) + range(240, 246) + range(340, 342) + range(440, 441) + range(740, 756) + range(880, 893) + range(943, 946):
                 self.file = u"Sloupský zpěvník"
+	    # logika ordinaria
+	    elif nmr in range(500,510):
+		self.file = u"Ordinárium"
             else:
                 self.file = ""
 
         self.nmr = nmr
         self.part = part
         self.changed = True
-        # vcgencmd display_power 1
-
+        self.last_change = time.time()
 
     def conf(self, k):
         if k in self.config:
@@ -120,9 +134,9 @@ class displayThread(threading.Thread):
 
         # definice pisem
         font = pygame.font.Font("fonts/DroidSerif/DroidSerif-Bold.ttf", 800)
-        font_large = pygame.font.Font("fonts/DroidSerif/DroidSerif-Bold.ttf", 1100)
-        font2_small = pygame.font.Font("fonts/DroidSerif/DroidSerif-Regular.ttf", 400)
-        font2_large = pygame.font.Font("fonts/DroidSerif/DroidSerif-Regular.ttf", 500)
+        font_large = pygame.font.Font("fonts/DroidSerif/DroidSerif-Bold.ttf", 800) #1100
+        font2_small = pygame.font.Font("fonts/DroidSerif/DroidSerif-Regular.ttf", 450) #400
+        font2_large = pygame.font.Font("fonts/DroidSerif/DroidSerif-Regular.ttf", 550) #500
         font3 = pygame.font.Font("fonts/DroidSerif/DroidSerif-Italic.ttf", 180)
 
         keynmr = 0
@@ -191,7 +205,7 @@ class displayThread(threading.Thread):
                     screen.fill(self.conf("background"))
                     if not self.file and not self.part: # pouze cislo
                         text = font_large.render("%03d" % self.nmr, True, self.conf("number"))
-                        screen.blit(text, ((s_width - text.get_width()) // 2, (s_height - text.get_height()) // 2 ))
+                        screen.blit(text, ((s_width - text.get_width()) // 2, (s_height + 50 - text.get_height()) // 2 ))
 
                     else: # vsechny informace
                         text = font.render("%03d" % self.nmr, True, self.conf("number"))
@@ -239,12 +253,16 @@ class displayThread(threading.Thread):
                 pygame.display.flip() # update all
                 self.changed = False
             if not self.nmr: # vyply displej bez ohledu na zmenu
-                if time.time() - self.disoff > self.offlimit and not self.pwr_is_off:
+                if not self.pwr_is_off and time.time() - self.disoff > self.offlimit:
                     os.system("vcgencmd display_power 0")
                     self.pwr_is_off = True
+            if not self.pwr_is_off and time.time() - self.last_change > self.totlimit:
+                os.system("vcgencmd display_power 0")
+                self.pwr_is_off = True
 
 
-            clock.tick(60)
+
+            clock.tick(10)
         if self.pwr_is_off:
             self.pwr_is_off = False
             os.system("vcgencmd display_power 1")
