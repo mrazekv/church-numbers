@@ -65,8 +65,7 @@ Aby při spouštění systému neběžel text po obrazovce (jen na chvíli se ob
 # v souboru /boot/config.txt odkomentovat disable_overscan pro skrytí černých okrajů
 sudo vim.tiny /boot/config.txt
 
-sudo apt-get install plymouth plymouth-themes
-sudo apt-get install pix-plym-splash
+sudo apt-get install plymouth plymouth-themes pix-plym-splash
 
 # aktivování obrazovky v menu Boot / splash screen
 sudo raspi-config
