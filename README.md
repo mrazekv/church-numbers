@@ -53,13 +53,18 @@ Raspbian obsahuje nástroj ``sudo raspi-config``, který umožňuje nastavit cel
 Dále je potřeba do systému doinstalovat tyto nástroje (pygame je hlavní knihovna pro zobrazování, pyserial pro komunikaci přes UART modul, poslední dva nástroje jsou pro vytvoření WiFi hot-spotu a mc je určeno pro jednodušší správu):
 
 
-    sudo apt-get install python-pygame python-pyserial mc dnsmasq hostapd
+    sudo apt-get install python-pygame python-serial mc dnsmasq hostapd
+    
 
 Nastavení splash-screen
 -----------------
 Aby při spouštění systému neběžel text po obrazovce (jen na chvíli se objeví logo maliny, kterému se nevyhneme), je potřeba aktivovat balík *plymouth-screen*, který je sice nainstalován, ale potřebuje doladit
 
+
 ```bash
+# v souboru /boot/config.txt odkomentovat disable_overscan pro skrytí černých okrajů
+sudo vim.tiny /boot/config.txt
+
 sudo apt-get install plymouth plymouth-themes
 sudo apt-get install pix-plym-splash
 
