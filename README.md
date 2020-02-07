@@ -53,7 +53,7 @@ Raspbian obsahuje nástroj ``sudo raspi-config``, který umožňuje nastavit cel
 Dále je potřeba do systému doinstalovat tyto nástroje (pygame je hlavní knihovna pro zobrazování, pyserial pro komunikaci přes UART modul, poslední dva nástroje jsou pro vytvoření WiFi hot-spotu a mc je určeno pro jednodušší správu):
 
 
-    sudo apt-get install python-pygame python-serial mc dnsmasq hostapd
+    sudo apt-get install python-pygame python-serial mc dnsmasq hostapd vim
     
 
 Nastavení splash-screen
@@ -95,7 +95,7 @@ Pro nastavení startu programu při bootování systému vložte do souboru
 
 před příkaz `exit 0` následující kód
      
-    cd /home/pi/cisla; python main.py
+    cd /home/pi/cisla; python main.py 2>&1 >/dev/null
 
 Po restartu můžete zkusit, že aplikace naběhne, stiskem klávesy ESC se dostanete vždy do konzole. V normální provozu však aplikace bude běžet pořád.
 
