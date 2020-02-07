@@ -154,7 +154,12 @@ Změnou parametru na `ignore_broadcast_ssid=1` naši síť potom skryjeme. Potom
 
     DAEMON_CONF="/etc/hostapd/hostapd.conf"
 
-Nyní potřebné služby spustíme
+Nyní potřebné služby aktivujeme a spustíme
+
+    sudo systemctl enable hostapd.service
+    sudo systemctl enable dnsmasq.service
+    sudo service hostapd start
+    sudo service dnsmasq start
 
 
 
@@ -163,6 +168,14 @@ Ve své konfiguraci jsem měl problém, že služba *hostapd* nešla spustit, pr
     cd /etc/systemd/system/
     sudo rm hostapd.service
     sudo ln -s /lib/systemd/system/hostapd.service hostapd.service
+    
+Poznámka: neověřený alternativní postup
+
+    sudo systemclt status hostapd.service
+    # mělo by vrátit "masked"
+    sudo systemctl unmask hostapd.service
+    # nyní by odkaz neměl být nulový
+    sudo ls -l /lib/systemd/system/hostapd.service
 
 Nyní by mělo být možné se k WiFi připojit a na adrese http://192.168.4.1:8080  uvidíme klávesnici.
 
