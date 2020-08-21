@@ -95,11 +95,25 @@ Pro nastavení startu programu při bootování systému vložte do souboru
 
 před příkaz `exit 0` následující kód
      
-    cd /home/pi/cisla; python main.py 2>&1 >/dev/null
+    cd /home/pi/cn/software; python main.py 2>&1 >/dev/null
 
 Po restartu můžete zkusit, že aplikace naběhne, stiskem klávesy ESC se dostanete vždy do konzole. V normální provozu však aplikace bude běžet pořád.
 
 **Pozor** čísla jsou po startu vyplé, pro zapnutí stačí na numerické klávesnici odeslat nějaké nenulové trojčíslí. Pro vypnutí stačí odeslat kód *000*. Ve vypnutém stavu by odběr měl být minimální (monitoru i rPi).
+
+
+Snížení počtu přístupů na kartu
+-------------
+Zdroj: https://medium.com/@andreas.schallwig/how-to-make-your-raspberry-pi-file-system-read-only-raspbian-stretch-80c0f7be7353
+
+    sudo apt-get remove --purge wolfram-engine triggerhappy anacron logrotate dphys-swapfile xserver-common lightdm
+    sudo apt-get autoremove --purge
+    sudo systemctl disable bootlogs
+    sudo systemctl disable console-setup
+    sudo apt-get install busybox-syslogd
+    sudo dpkg --purge rsyslog
+
+Edit the file /boot/cmdline.txt and add the following three words at the end of the line: fastboot noswap ro
 
 Nastavení WiFi přístupového bodu
 -----------
@@ -163,13 +177,6 @@ Nyní potřebné služby aktivujeme a spustíme
 
 
 
-Ve své konfiguraci jsem měl problém, že služba *hostapd* nešla spustit, protože soubor `/etc/systemd/system/hostapd.service` byl nulový. Musel jsem jej smazat a vytvořit nový symbolický odkaz:
-
-    cd /etc/systemd/system/
-    sudo rm hostapd.service
-    sudo ln -s /lib/systemd/system/hostapd.service hostapd.service
-    
-Poznámka: neověřený alternativní postup
 
     sudo systemclt status hostapd.service
     # mělo by vrátit "masked"
@@ -180,3 +187,5 @@ Poznámka: neověřený alternativní postup
 Nyní by mělo být možné se k WiFi připojit a na adrese http://192.168.4.1:8080  uvidíme klávesnici.
 
 ![Klávesnice](img/klavesnice.png)
+
+

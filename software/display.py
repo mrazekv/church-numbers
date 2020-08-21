@@ -30,6 +30,15 @@ class displayThread(threading.Thread):
         self.totlimit = 90*60 # limit necinnosti v sekundach - 1.5 hodiny
         self.last_change = time.time()
     
+        
+        self.set_scheme(0)
+     
+        self.changed = True
+        pygame.display.init()
+        pygame.font.init()
+        pygame.mouse.set_visible(False)
+
+    def set_scheme(self, color):
         if 0:
             # zlute pozadi, tmavy text
             self.config = {
@@ -38,19 +47,28 @@ class displayThread(threading.Thread):
                 "part" : rgb("666666"),
                 "file" : rgb("666666"),
             }
-
-	elif 1:
+        elif color == 0:
             # zlute pozadi, tmavy text + oranzova sloka
             self.config = {
                 "background" : rgb("f0e68c"), # zluta 
                 "number" : rgb("333333"),
-		"part" : rgb("cc3300"),
+                "part" : rgb("cc3300"),
                 "file" : rgb("666666"),
             }
 
+        elif color == 1:
+            # zlute pozadi, cerveny text, seda sloka
+            self.config = {
+                "background" : rgb("f0e68c"), # zluta 
+                "number" : rgb("c5000f"),
+                "part" : rgb("333133"),
+                "file" : rgb("330000"),
+            }
+
+
 
         elif 0:
-	    # svetle pozadi, zeleny text
+	        # svetle pozadi, zeleny text
             self.config = {
                 "background" : rgb("#ffffe6"),
                 "number" : rgb("006600"),
@@ -66,13 +84,6 @@ class displayThread(threading.Thread):
                 "part" : rgb("cc3300"),
                 "file" : rgb("666666"),
             }
-     
-        self.changed = True
-        pygame.display.init()
-        pygame.font.init()
-        pygame.mouse.set_visible(False)
-
-    
 
     def get_number(self):
         return "%03d%02d" % (self.nmr, self.part)
@@ -85,16 +96,18 @@ class displayThread(threading.Thread):
         nmr = int(value[:3])
         part = int(value[3:])
 
- #       if nmr == 1 and change_name: 
- #           self.file = ""
- #           self.fileset = False
- #           nmr = oldnmr
- #           part = oldpart
- #       if nmr == 2 and change_name:
- #           self.file = u"Sloupský zpěvník"
- #           self.fileset = True
- #           nmr = oldnmr
- #           part = oldpart
+        if nmr == 0 and change_name: 
+            self.file = ""
+            self.fileset = False
+            #nmr = oldnmr
+            #part = oldpart
+            self.set_scheme(0)
+        if nmr == 999 and change_name:
+            self.file = u"Zpěvníček"
+            self.fileset = True
+            nmr = oldnmr
+            part = oldpart
+            self.set_scheme(1)
  #       if nmr == 3 and change_name:
  #           self.file = "Hosana"
  #           self.fileset = True
@@ -151,43 +164,43 @@ class displayThread(threading.Thread):
                     elif event.key in [pygame.K_1, pygame.K_KP1]:
                         keynmr = (keynmr * 10 + 1) % 1000
                         keypart = 0
-                        self.set_number("%03d%02d" % (keynmr, keypart), False)
+                        self.set_number("%03d%02d" % (keynmr, keypart), True)
                     elif event.key in [pygame.K_2, pygame.K_KP2]:
                         keynmr = (keynmr * 10 + 2) % 1000
                         keypart = 0
-                        self.set_number("%03d%02d" % (keynmr, keypart), False)
+                        self.set_number("%03d%02d" % (keynmr, keypart), True)
                     elif event.key in [pygame.K_3, pygame.K_KP3]:
                         keynmr = (keynmr * 10 + 3) % 1000
                         keypart = 0
-                        self.set_number("%03d%02d" % (keynmr, keypart), False)
+                        self.set_number("%03d%02d" % (keynmr, keypart), True)
                     elif event.key in [pygame.K_4, pygame.K_KP4]:
                         keynmr = (keynmr * 10 + 4) % 1000
                         keypart = 0
-                        self.set_number("%03d%02d" % (keynmr, keypart), False)
+                        self.set_number("%03d%02d" % (keynmr, keypart), True)
                     elif event.key in [pygame.K_5, pygame.K_KP5]:
                         keynmr = (keynmr * 10 + 5) % 1000
                         keypart = 0
-                        self.set_number("%03d%02d" % (keynmr, keypart), False)
+                        self.set_number("%03d%02d" % (keynmr, keypart), True)
                     elif event.key in [pygame.K_6, pygame.K_KP6]:
                         keypart = 0
                         keynmr = (keynmr * 10 + 6) % 1000
-                        self.set_number("%03d%02d" % (keynmr, keypart), False)
+                        self.set_number("%03d%02d" % (keynmr, keypart), True)
                     elif event.key in [pygame.K_7, pygame.K_KP7]:
                         keynmr = (keynmr * 10 + 7) % 1000
                         keypart = 0
-                        self.set_number("%03d%02d" % (keynmr, keypart), False)
+                        self.set_number("%03d%02d" % (keynmr, keypart), True)
                     elif event.key in [pygame.K_8, pygame.K_KP8]:
                         keynmr = (keynmr * 10 + 8) % 1000
                         keypart = 0
-                        self.set_number("%03d%02d" % (keynmr, keypart), False)
+                        self.set_number("%03d%02d" % (keynmr, keypart), True)
                     elif event.key in [pygame.K_9, pygame.K_KP9]:
                         keynmr = (keynmr * 10 + 9) % 1000
                         keypart = 0
-                        self.set_number("%03d%02d" % (keynmr, keypart), False)
+                        self.set_number("%03d%02d" % (keynmr, keypart), True)
                     elif event.key in [pygame.K_0, pygame.K_KP0]:
                         keynmr = (keynmr * 10 + 0) % 1000
                         keypart = 0
-                        self.set_number("%03d%02d" % (keynmr, keypart), False)
+                        self.set_number("%03d%02d" % (keynmr, keypart), True)
                     elif event.key in [pygame.K_PLUS, pygame.K_KP_PLUS]:
                         keypart = (keypart + 1) % 100
                         self.set_number("%03d%02d" % (keynmr, keypart), False)

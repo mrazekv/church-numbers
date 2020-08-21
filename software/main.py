@@ -4,7 +4,7 @@
 import thread
 from display import displayThread
 from web import webThread
-from uart import uartThread
+#from uart import uartThread
 import time
 
 display_thread = displayThread()
