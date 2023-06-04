@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import thread
+import threading
 from display import displayThread
 from web import webThread
 #from uart import uartThread
@@ -16,11 +16,11 @@ display_thread.start()
 web_thread.start()
 # uart_thread.start()
 if 1:
-    print "Exiting"
-    while display_thread.isAlive():
+    print("Exiting")
+    while display_thread.is_alive():
         time.sleep(1)
 
-    print "Web threadstopping"
+    print("Web threadstopping")
     web_thread.stop()
  #   uart_thread.stop()
 

@@ -116,11 +116,11 @@ class displayThread(threading.Thread):
 
         if not self.fileset:
             # logika sloupskeho zpevniku
-            if nmr in range(150, 152) + range(240, 246) + range(340, 342) + range(440, 441) + range(740, 756) + range(880, 893) + range(943, 946):
+            if nmr in list(range(150, 152)) + list(range(240, 246)) + list(range(340, 342)) + list(range(440, 441)) + list(range(740, 756)) + list(range(880, 893)) + list(range(943, 946)):
                 self.file = u"Sloupský zpěvník"
-	    # logika ordinaria
-	    elif nmr in range(500,510):
-		self.file = u"Ordinárium"
+            # logika ordinaria
+            elif nmr in range(500,510):
+                self.file = u"Ordinárium"
             else:
                 self.file = ""
 
@@ -281,4 +281,4 @@ class displayThread(threading.Thread):
             os.system("vcgencmd display_power 1")
 
         pygame.quit()
-        print "Display EXIT"
+        print("Display EXIT")
