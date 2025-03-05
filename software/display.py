@@ -6,6 +6,7 @@ import sys
 import threading
 import time
 import os
+from math import ceil
 
 def rgb(value):
     value = value.lstrip('#')
@@ -23,6 +24,7 @@ class displayThread(threading.Thread):
         self.file = "" 
         self.fileset = False
         self.config = {}
+        self.zalm = "Žalm"
 
         self.disoff = None   # cas vypnuti displeje
         self.pwr_is_off = False # displej je vypnuty
@@ -38,6 +40,14 @@ class displayThread(threading.Thread):
         pygame.font.init()
         pygame.mouse.set_visible(False)
 
+    def get_zalm(self): 
+        return self.zalm
+    
+    def set_zalm(self, value):
+        self.zalm = value
+        self.changed = True
+        self.last_change = time.time()
+        
     def set_scheme(self, color):
         if 0:
             # zlute pozadi, tmavy text
@@ -133,13 +143,84 @@ class displayThread(threading.Thread):
         if k in self.config:
             return self.config[k]
         return (0, 0, 0)
+    
+    def display_long_text(self, text, color):
+        
+        font_size = 600
+        
+        while 1:
+            font_zalm = pygame.font.Font("fonts/DroidSerif/DroidSerif-Regular.ttf", font_size) #400
+            #text = "Smiluj se, Pane, neboť jsme zhřešili."
+            #text = "Smilujse,Pane,neboťjsmezhřešili."
+            
+            allowed_width = self.s_width - 100
+            x, y = self.s_width // 2, self.s_height // 2
+            # first, split the text into words
+            words = text.split()
+            if len(words) == 0:
+                break
+            if len(words) == 1:
+                words.append("")
+                words.append("")
+            # now, construct lines out of these words
+            lines = []
+            while len(words) > 0:
+                # get as many words as will fit within allowed_width
+                line_words = []
+                while len(words) > 0:
+                    line_words.append(words.pop(0))
+                    fw, fh = font_zalm.size(' '.join(line_words + words[:1]))
+                    if fw > allowed_width:
+                        break
+
+                # add a line consisting of those words
+                line = ' '.join(line_words)
+                lines.append(line)
+                
+            # get the height of the text
+            sizes = [font_zalm.size(line) for line in lines]
+            total_height = sum(h for w, h in sizes)
+            max_width = max(w for w, h in sizes)
+            if total_height < self.s_height - 100 and max_width < self.s_width - 100:
+                break
+            else:
+                #print("font size", font_size)
+                font_size = ceil(font_size * 0.9)
+                if font_size < 50:
+                    break
+            
+        y = (self.s_height - total_height) // 2
+        
+        
+        
+        # we'll render each line below the last, so we need to keep track of
+        # the culmative height of the lines we've rendered so far
+        y_offset = 0
+        for line in lines:
+            fw, fh = font_zalm.size(line)
+
+            # (tx, ty) is the top-left of the font surface
+            tx = x - fw / 2
+            ty = y + y_offset
+
+            font_surface = font_zalm.render(line, True, color)
+            #print("render", line, tx, ty)
+            self.screen.blit(font_surface, (tx, ty))
+
+            y_offset += fh
+        
 
     def run(self):
         # maximalni rozliseni na vystupu
         modes = pygame.display.list_modes()
+        print(modes)
         mode = max(modes)
+        mode = (1920, 1080) # DEBUG
         screen = pygame.display.set_mode(mode)
+        self.screen = screen
         s_width, s_height = mode
+        self.s_width = s_width
+        self.s_height = s_height
         clock = pygame.time.Clock()
 
         # ukonceni klavesou escape
@@ -216,7 +297,11 @@ class displayThread(threading.Thread):
                         os.system("vcgencmd display_power 1")
 
                     screen.fill(self.conf("background"))
-                    if not self.file and not self.part: # pouze cislo
+                    if self.nmr == 1 and not self.part: # zalm
+                        
+                        self.display_long_text(self.get_zalm(), self.conf("number"))
+                        
+                    elif not self.file and not self.part: # pouze cislo
                         text = font_large.render("%03d" % self.nmr, True, self.conf("number"))
                         screen.blit(text, ((s_width - text.get_width()) // 2, (s_height + 50 - text.get_height()) // 2 ))
 

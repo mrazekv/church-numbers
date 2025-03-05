@@ -1,125 +1,236 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="bootstrap.min.css" >
-	 <style>
-		.numbtn, .cmdbtn {
+<head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="bootstrap.min.css">
+	<style>
+		.numbtn,
+		.cmdbtn {
 			width: 33%;
 		}
-	 </style>
-    <title>Klávesnice</title>
-  </head>
-  <body>
-        <main class="container">
+
+		.pull-right {
+			float: right;
+		}
+	</style>
+	<title>Klávesnice</title>
+</head>
+
+<body>
+	<main class="container">
 
 		<div class="alert alert-danger" style="display: none" id="alert-fail">Odeslání se nezdařilo</div>
-		<div style="" class="text-center">
-		
-			<span id="num" style="font-size: 8em;">000</span>  <span id="part" style="font-size: 5em;">00</span>
-		
+		<div class="text-center">
+
+			<span id="num" style="font-size: 8em;">000</span> <span id="part" style="font-size: 5em;">00</span>
+
 		</div>
-	
+
 		<p class="btn-group" style="width:100%">
 			<a href="#" class="btn btn-lg btn-outline-primary numbtn">1</a>
 			<a href="#" class="btn btn-lg btn-outline-primary numbtn">2</a>
 			<a href="#" class="btn btn-lg btn-outline-primary numbtn">3</a>
 		</p>
-		
-		
+
+
 		<p class="btn-group" style="width:100%">
 			<a href="#" class="btn btn-lg btn-outline-primary numbtn">4</a>
 			<a href="#" class="btn btn-lg btn-outline-primary numbtn">5</a>
 			<a href="#" class="btn btn-lg btn-outline-primary numbtn">6</a>
 		</p>
-		
-		
+
+
 		<p class="btn-group" style="width:100%">
 			<a href="#" class="btn btn-lg btn-outline-primary numbtn">7</a>
 			<a href="#" class="btn btn-lg btn-outline-primary numbtn">8</a>
 			<a href="#" class="btn btn-lg btn-outline-primary numbtn">9</a>
 		</p>
-		
-		
+
+
 		<p class="btn-group" style="width:100%">
 			<a href="#" class="btn btn-lg btn-outline-primary numbtn">0</a>
 			<a href="#" id="send" class="btn btn-lg btn-danger cmdbtn">Odeslat</a>
 			<a href="#" id="incsend" class="btn btn-lg btn-success cmdbtn" style="width: 16.5%">+1 S</a>
 			<a href="#" class="btn btn-lg btn-outline-primary numbtn" style="width: 16.5%">00</a>
 		</p>
-		
-		
-		</main>
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="jquery-3.3.1.min.js"></script>
-    <script src="popper.min.js"></script>
-    <script src="bootstrap.min.js"></script>
-	
+
+
+		<!-- one line form with textarea -->
+		<form  onsubmit="return ajaxSubmit(this);" id="form-zalm">
+			<div class="form-group">
+				<label for="text">Text žalmu (aktivuje se číslem 001):</label>
+				<textarea class="form-control" id="text" name="text" rows="3"></textarea>
+			</div>
+			<button type="submit" class="btn btn-primary">Odeslat</button>
+		</form>
+
+		<p>
+
+			<div class="btn-group">
+				<a href="#" class="btn btn-dark" onclick="refreshCache(); return false;">Historie (časově)</a>
+				<a href="#" class="btn btn-dark" onclick="refreshCache(true); return false;">Historie (abecedně)</a>
+				
+			</div>
+			
+			
+			
+			<ul id="history" class="list-group mt-1">
+			</ul>
+		</p>
+	</main>
+	<!-- Optional JavaScript -->
+	<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+	<script src="jquery-3.3.1.min.js"></script>
+	<script src="popper.min.js"></script>
+	<script src="bootstrap.min.js"></script>
+
 	<script>
-	value = 0;
-	part = 0;
-	data = "00000";
-	
-	function updateView() {
-		if(data.length == 5) {
-			$("#num").text(data.substr(0, 3));
-			$("#part").text(data.substr(3, 2));
+		value = 0;
+		part = 0;
+		data = "00000";
+
+		function refreshCache(alph = false) {
+			$.get("/get_zalm_cache", function (data) {
+				console.log(data);
+
+				if(alph) {
+					//sort data
+					data = data.sort();
+				}
+				else {
+				// reverse data
+					data = data.reverse();
+				}
+
+				$("#history").empty();
+				//foreach data
+				data.forEach(function (item) {
+					$("#history").append("<li class=\"list-group-item\" pdata=\"" + item + "\"></li>");
+				});
+
+				$("#history li").each(function () {
+					$(this).text($(this).attr("pdata"));
+
+					// add two buttons
+					$(this).append("<span class=\"pull pull-right btn-group\"><a href=\"#\" class=\"btn btn-primary btn-sm b-submit\">Odeslat</a><a href=\"#\" class=\"btn btn-danger btn-sm b-delete\">Smazat</a></span>");
+				});
+
+				$(".b-submit").click(function () {
+					$("#text").val($(this).parent().parent().attr("pdata"));
+					$("#form-zalm").submit();
+					return false;
+				});
+
+				$(".b-delete").click(function () {
+					if(!confirm("Opravdu smazat " + $(this).parent().parent().attr("pdata") + "?")) {
+						return false;
+					}
+					$.ajax({
+						type: "POST",
+						url: "/remove_zalm_cache",
+						data: $(this).parent().parent().attr("pdata"),
+						success: function (data) {
+							refreshCache();
+						},
+						error: function () {
+							$("#alert-fail").show();
+						}
+					});
+					return false;
+				});
+			})
 		}
-		else {
-			$("#num").text("ERR");
-			$("#part").text("ERR");
+
+		$(document).ready(function () {
+			$.get("/get_zalm", function (data) {
+				$("#text").val(data);
+			});
+			refreshCache();
+			
+		});
+
+		function ajaxSubmit(form) {
+			$.ajax({
+				type: "POST",
+				url: "/set_zalm",
+				data: $(form)[0].text.value,
+				success: function (data) {
+					if (data != "OK") {
+						console.log("resp: " + data)
+						$("#alert-fail").show();
+					}
+				},
+				error: function () {
+					$("#alert-fail").show();
+				},
+				complete: function () {
+					refreshCache();
+				}
+			});
+			return false;
 		}
-		
-	}
-	
-	function send() {
-		console.log("to send " + data)
-		$("#alert-fail").hide();
-		$.get( "/display_" + data, function( data ) {
-  if(data != "OK") {
-  console.log("resp: " + data)
-	$("#alert-fail").show();
-	}
-   
-}).fail(function() {
-    $("#alert-fail").show();
-  });
-  
-	}
-	
-	$(".numbtn").click(function () {
-		txt = $(this).text();
-		data = data.substr(txt.length) + txt;
-		
-		updateView();
-		return false;
-		
-	});
-	
-	$("#send").click(function () {
-		send();		
-	});
-	
-	$("#incsend").click(function () {
-		num = data.substr(0,3);
-		part = Number(data.substr(3, 2)) + 1; 
-		part = "000" + part;
-		
-		part = part.substr(part.length - 2); // posledni 2 znaky
-		data = num + part;
-		updateView();
-		send();
-		
-	});
-	
-	$("document").ready(function (){
-		
-	});
+
+		function updateView() {
+			if (data.length == 5) {
+				$("#num").text(data.substr(0, 3));
+				$("#part").text(data.substr(3, 2));
+			}
+			else {
+				$("#num").text("ERR");
+				$("#part").text("ERR");
+			}
+
+		}
+
+		function send() {
+			console.log("to send " + data)
+			$("#alert-fail").hide();
+			$.get("/display_" + data, function (data) {
+				if (data != "OK") {
+					console.log("resp: " + data)
+					$("#alert-fail").show();
+				}
+
+			}).fail(function () {
+				$("#alert-fail").show();
+			});
+
+		}
+
+		$(".numbtn").click(function () {
+			txt = $(this).text();
+			data = data.substr(txt.length) + txt;
+
+			updateView();
+			return false;
+
+		});
+
+		$("#send").click(function () {
+			send();
+		});
+
+		$("#incsend").click(function () {
+			num = data.substr(0, 3);
+			part = Number(data.substr(3, 2)) + 1;
+			part = "000" + part;
+
+			part = part.substr(part.length - 2); // posledni 2 znaky
+			data = num + part;
+			updateView();
+			send();
+
+		});
+
+		$("document").ready(function () {
+
+		});
 	</script>
-  </body>
+</body>
+
 </html>
