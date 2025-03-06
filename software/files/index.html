@@ -72,8 +72,8 @@
 		<p>
 
 			<div class="btn-group">
-				<a href="#" class="btn btn-dark" onclick="refreshCache(); return false;">Historie (časově)</a>
 				<a href="#" class="btn btn-dark" onclick="refreshCache(true); return false;">Historie (abecedně)</a>
+				<a href="#" class="btn btn-dark" onclick="refreshCache(); return false;">Historie (časově)</a>
 				
 			</div>
 			
@@ -100,7 +100,7 @@
 
 				if(alph) {
 					//sort data
-					data = data.sort();
+					data = data.sort((a, b) => a.localeCompare(b));
 				}
 				else {
 				// reverse data
@@ -150,7 +150,7 @@
 			$.get("/get_zalm", function (data) {
 				$("#text").val(data);
 			});
-			refreshCache();
+			//refreshCache(true);
 			
 		});
 
@@ -169,7 +169,7 @@
 					$("#alert-fail").show();
 				},
 				complete: function () {
-					refreshCache();
+					refreshCache(true);
 				}
 			});
 			return false;

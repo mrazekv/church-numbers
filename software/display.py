@@ -96,6 +96,8 @@ class displayThread(threading.Thread):
             }
 
     def get_number(self):
+        if self.nmr == 1 and not self.fileset: # zalm
+            return "00000"
         return "%03d%02d" % (self.nmr, self.part)
 
     def set_number(self, value, change_name = True):
@@ -215,7 +217,7 @@ class displayThread(threading.Thread):
         modes = pygame.display.list_modes()
         print(modes)
         mode = max(modes)
-        mode = (1920, 1080) # DEBUG
+        # mode = (1920, 1080) # DEBUG
         screen = pygame.display.set_mode(mode)
         self.screen = screen
         s_width, s_height = mode
@@ -297,7 +299,7 @@ class displayThread(threading.Thread):
                         os.system("vcgencmd display_power 1")
 
                     screen.fill(self.conf("background"))
-                    if self.nmr == 1 and not self.part: # zalm
+                    if self.nmr == 1 and not self.fileset: # zalm
                         
                         self.display_long_text(self.get_zalm(), self.conf("number"))
                         
