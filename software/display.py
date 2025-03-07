@@ -95,8 +95,15 @@ class displayThread(threading.Thread):
                 "file" : rgb("666666"),
             }
 
+    def is_zalm(self):
+        if self.nmr == 1 and not self.fileset:
+            return True
+        if self.part == 99:
+            return True
+        return False
+
     def get_number(self):
-        if self.nmr == 1 and not self.fileset: # zalm
+        if self.is_zalm(): # zalm
             return "00000"
         return "%03d%02d" % (self.nmr, self.part)
 
@@ -299,7 +306,7 @@ class displayThread(threading.Thread):
                         os.system("vcgencmd display_power 1")
 
                     screen.fill(self.conf("background"))
-                    if self.nmr == 1 and not self.fileset: # zalm
+                    if self.is_zalm(): # zalm
                         
                         self.display_long_text(self.get_zalm(), self.conf("number"))
                         
