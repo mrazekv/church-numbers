@@ -2,15 +2,25 @@ import os
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import tornado.escape
 from glob import glob
 import os
 import time
+import json
 PORT_NUMBER = 8080
 
+try:
+    zalm_cache = json.load(open("zalm_cache.json", "r"))
+except:
+    zalm_cache = []
+    
 
 # This class will handles any incoming request from
 # the browser
 class myHandler(BaseHTTPRequestHandler):
+    def __init__(self, request, client_address, server):
+        super().__init__(request, client_address, server)
+
 
     # Handler for the GET requests
     def do_GET(self):
@@ -53,6 +63,34 @@ class myHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 self.wfile.write(f"FAIL {e}".encode())
 
+                
+        elif self.path == "/get_zalm":
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(display_global.get_zalm().encode())
+        
+        elif self.path == "/get_zalm_cache":
+            global zalm_cache
+            self.send_header('Content-type', 'text/json')
+            self.end_headers()
+            
+            js = json.dumps(zalm_cache)
+            self.wfile.write(js.encode())
+            
+        elif self.path.startswith("/remove_zalm_cache_"):
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            data = self.path.split("_")
+            if len(data) != 4:
+                self.wfile.write("FAIL bad datalen".encode())
+                return
+            try:
+                zalm_cache.remove(data[-1])
+                json.dump(zalm_cache, open("zalm_cache.json", "w"))
+                self.wfile.write("OK".encode())
+            except Exception as e:
+                self.wfile.write(f"FAIL {e}".encode())
+
         elif self.path.startswith("/get"):
             self.send_header('Content-type', 'text/plain')
             self.end_headers()
@@ -61,9 +99,53 @@ class myHandler(BaseHTTPRequestHandler):
                 self.wfile.write(display_global.get_number().encode())
             except Exception as e:
                 self.wfile.write(f"FAIL {e}".encode())
+                
         else:
             self.send_error(404, 'File Not Found: %s' % self.path)
 
+        return
+    
+    def do_POST(self):
+        global display_global
+        global zalm_cache
+        
+        if self.path == "/set_zalm":
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            
+            post_data = tornado.escape.url_unescape(post_data)
+            # decode post_data           
+            
+            if post_data not in zalm_cache:
+                zalm_cache.append(post_data)
+                json.dump(zalm_cache, open("zalm_cache.json", "w"))
+            
+            display_global.set_zalm(post_data)
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write("OK".encode())
+            return
+        elif self.path == "/remove_zalm_cache":
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            post_data = tornado.escape.url_unescape(post_data)
+            if post_data in zalm_cache:
+                zalm_cache.remove(post_data)
+                json.dump(zalm_cache, open("zalm_cache.json", "w"))
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write("OK".encode())
+        
+        else:
+            self.send_error(404, 'Post file Not Found: %s' % self.path)
+            return
+        print("POST")
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        self.wfile.write("POST".encode())
         return
 
 

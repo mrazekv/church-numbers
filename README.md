@@ -6,6 +6,8 @@ Hlavní výhodou těchto čísel je cena (kompletní náklady mohou být do 4000
 
 Pokud se tímto kódem inspirujete, prosím kontaktujte autory pro uvedení referencí. Pokud systém rozšíříte o nějakou zajímavou funkčnost, rádi vaši úpravu zahrneme do hlavní větve. Produkt je šířen pod licencí [GPL](LICENSE) - projekty založené na našem projektu by měli mít stejnou licenci.
 
+Systém nyní umožňuje zadat i žalm - s číslem 
+
 
 Struktura souborů
 ============================
@@ -14,13 +16,7 @@ Struktura souborů
    - [display.py](software/display.py) - zobrazování, logika slok atd.
    - [web.py](software/web.py) - webový server
    - [files](software/files) - statická data webového serveru; musí být explicitně vyjmenovaná ve [web.py](software/web.py)
-   - [fonts](software/fonts) - použité písmo
-
-Použité zařízení
-==============================
-Pro fungování těchto čísel potřebujete
- - rozumně velký monitor :computer:
-    - nesmí to být TN technologie (špatné pozorovací úhly)
+   - [fonts](software/fonts) -git config pull.rebase falsogie (špatné pozorovací úhly)
     - doporučuji s tenkým rámečkem, loga je možné přelepit lepící páskou
     - s podporou VESA držáku (kromě designových dneska většina)
  - RaspberryPi 
@@ -44,19 +40,16 @@ Nastavení systému
 Raspbian obsahuje nástroj ``sudo raspi-config``, který umožňuje nastavit celou řadu důležitých parametrů
 
   - nastavit heslo
-  - zapnout seriový port (UART); ne ovšem pro administrátorský přístup
   - povolit SSH server
   - rozložení klávesnice
   - připojit dočasně k internetu přes WiFi
   - nastavit rozlišení obrazovky
 
-Dále je potřeba do systému doinstalovat tyto nástroje (pygame je hlavní knihovna pro zobrazování, pyserial pro komunikaci přes UART modul, poslední dva nástroje jsou pro vytvoření WiFi hot-spotu a mc je určeno pro jednodušší správu):
+Dále je potřeba do systému doinstalovat tyto nástroje (pygame je hlavní knihovna pro zobrazování, poslední dva nástroje jsou pro vytvoření WiFi hot-spotu a mc je určeno pro jednodušší správu):
 
 
-    sudo apt-get install python-pygame python-serial mc dnsmasq hostapd vim
-    sudo apt install libegl-dev
-    sudo apt-get install plymouth plymouth-themes pix-plym-splash
-
+    sudo apt-get install python3-pygame python3-tornado mc vim git
+    
 
 Nastavení splash-screen
 -----------------
@@ -105,8 +98,7 @@ Nahrání aplikace
 Přes `git` stáhneme nejnovější verzi aplikace. Pro odzkoušení stačí spustit
 
 ```bash
-    git clone https://github.com/mrazekv/church-numbers.git
-    cd church-numbers/software/
+    cd cisla
     python3 main.py
     # zadat tři nenulová čísla (viz poznámka na konci odstavce)
 ```
