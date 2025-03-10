@@ -13,9 +13,9 @@ def rgb(value):
         return tuple(int(value[i:i+2], 16) for i in (0, 2 ,4))
     return (0, 0, 0)
 
-class displayThread(threading.Thread):
+class displayThread: #(threading.Thread):
     def __init__(self):
-        threading.Thread.__init__(self)
+    #    threading.Thread.__init__(self)
         self.nmr = 000
         self.part = 0
 
