@@ -54,7 +54,9 @@ Dále je potřeba do systému doinstalovat tyto nástroje (pygame je hlavní kni
 
 
     sudo apt-get install python-pygame python-serial mc dnsmasq hostapd vim
-    
+    sudo apt install libegl-dev
+    sudo apt-get install plymouth plymouth-themes pix-plym-splash
+
 
 Nastavení splash-screen
 -----------------
@@ -77,13 +79,35 @@ sudo plymouth-set-default-theme spinner
 sudo reboot # zkusíme, jestli to funguje
 ```
 
+Vypínání displeje
+-----------------
+sudo apt install cec-utils
+echo 'standby 0' | cec-client -s -d 1    # turns OFF
+echo 'on 0' | cec-client -s -d 1         # turns ON
+
+
+https://github.com/raspberrypi/firmware/issues/1224#issuecomment-1470791044
+
+Changing the hardware acceleration driver from vc4-kms-v3d to vc4-fkms-v3d fixed the issue with the vcgencmd display_power command on RPi4B.
+
+Don't quite understand why (and in my case didn't need to), but still wanted to share. Steps:
+
+sudo nano /boot/config.txt or any other editor
+Change dtoverlay=vc4-kms-v3d to dtoverlay=vc4-fkms-v3d
+reboot
+
+or switch over rapsi to Advanced options - Legacy driver
+
+
+
 Nahrání aplikace
 ----------
-Přes `mc` nebo přes příkazový řádek vytvoříme podadresář *cisla*, kam nakopírujeme obsah složky [software]. Pro odzkoušení stačí spustit
+Přes `git` stáhneme nejnovější verzi aplikace. Pro odzkoušení stačí spustit
 
 ```bash
-    cd cisla
-    python main.py
+    git clone https://github.com/mrazekv/church-numbers.git
+    cd church-numbers/software/
+    python3 main.py
     # zadat tři nenulová čísla (viz poznámka na konci odstavce)
 ```
 
@@ -95,12 +119,23 @@ Pro nastavení startu programu při bootování systému vložte do souboru
 
 před příkaz `exit 0` následující kód
      
-    cd /home/pi/cn/software; python main.py 2>&1 >/dev/null
+    cd /home/pi/church-numbers/software; python3 main.py 2>&1 >/dev/null
 
+Pokud neexistuje, musí se vytvořit
+
+```sh
+#!/bin/sh -e
+cd /home/pi/church-numbers/software; python3 main.py 2>&1 >/dev/null
+exit(0)
+```
 Po restartu můžete zkusit, že aplikace naběhne, stiskem klávesy ESC se dostanete vždy do konzole. V normální provozu však aplikace bude běžet pořád.
 
 **Pozor** čísla jsou po startu vyplé, pro zapnutí stačí na numerické klávesnici odeslat nějaké nenulové trojčíslí. Pro vypnutí stačí odeslat kód *000*. Ve vypnutém stavu by odběr měl být minimální (monitoru i rPi).
 
+
+
+## Zastaralé
+(není třeba, pokud budeme používat jiný WiFi router)
 
 Snížení počtu přístupů na kartu
 -------------
