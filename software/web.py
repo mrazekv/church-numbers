@@ -1,12 +1,10 @@
-import os
+import re
 import threading
-import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import tornado.escape
-from glob import glob
-import os
-import time
+import urllib.parse
 import json
+
+import urllib
 PORT_NUMBER = 8080
 
 try:
@@ -68,6 +66,11 @@ class myHandler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'text/plain')
             self.end_headers()
             self.wfile.write(display_global.get_zalm().encode())
+            
+        elif self.path == "/get_status":
+            self.send_header('Content-type', 'text/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(display_global.get_status(), indent=4).encode())
         
         elif self.path == "/get_zalm_cache":
             global zalm_cache
@@ -113,7 +116,8 @@ class myHandler(BaseHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             
-            post_data = tornado.escape.url_unescape(post_data)
+            post_data =  urllib.parse.unquote_plus(post_data.decode())
+            post_data = re.sub(r"\s+", " ", post_data)
             # decode post_data           
             
             if post_data not in zalm_cache:
@@ -129,7 +133,7 @@ class myHandler(BaseHTTPRequestHandler):
         elif self.path == "/remove_zalm_cache":
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
-            post_data = tornado.escape.url_unescape(post_data)
+            post_data = urllib.parse.unquote_plus(post_data.decode())
             if post_data in zalm_cache:
                 zalm_cache.remove(post_data)
                 json.dump(zalm_cache, open("zalm_cache.json", "w"))
@@ -141,12 +145,7 @@ class myHandler(BaseHTTPRequestHandler):
         else:
             self.send_error(404, 'Post file Not Found: %s' % self.path)
             return
-        print("POST")
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-        self.wfile.write("POST".encode())
-        return
+
 
 
 class webThread(threading.Thread):
@@ -168,9 +167,10 @@ class webThread(threading.Thread):
             pass
 
     def stop(self):
-        print("Tornado stopping")
+        print("Web stopping")
+        self.server.shutdown()
         self.server.socket.close()
-        print("Tornado stopped")
+        print("Web stopped")
         # tornado.ioloop.IOLoop.current().start()
 
 

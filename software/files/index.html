@@ -63,7 +63,7 @@
 		<!-- one line form with textarea -->
 		<form  onsubmit="return ajaxSubmit(this);" id="form-zalm">
 			<div class="form-group">
-				<label for="text">Text žalmu (aktivuje se číslem 001):</label>
+				<label for="text">Text žalmu (aktivuje se číslem 001 nebo slokou 99, nepoužívejte nové řádky):</label>
 				<textarea class="form-control" id="text" name="text" rows="3"></textarea>
 			</div>
 			<button type="submit" class="btn btn-primary">Odeslat</button>
@@ -73,7 +73,7 @@
 
 			<div class="btn-group">
 				<a href="#" class="btn btn-dark" onclick="refreshCache(true); return false;">Historie (abecedně)</a>
-				<a href="#" class="btn btn-dark" onclick="refreshCache(); return false;">Historie (časově)</a>
+				<a href="#" class="btn btn-dark" onclick="refreshCache(false); return false;">Historie (časově)</a>
 				
 			</div>
 			
@@ -94,7 +94,10 @@
 		part = 0;
 		data = "00000";
 
+		var alphabetSort = true;
+
 		function refreshCache(alph = false) {
+			alphabetSort = alph;
 			$.get("/get_zalm_cache", function (data) {
 				console.log(data);
 
@@ -135,7 +138,7 @@
 						url: "/remove_zalm_cache",
 						data: $(this).parent().parent().attr("pdata"),
 						success: function (data) {
-							refreshCache();
+							refreshCache(alphabetSort);
 						},
 						error: function () {
 							$("#alert-fail").show();
@@ -169,7 +172,7 @@
 					$("#alert-fail").show();
 				},
 				complete: function () {
-					refreshCache(true);
+					refreshCache(alphabetSort);
 				}
 			});
 			return false;

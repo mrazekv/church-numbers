@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import json
 import pygame
 import sys
 import threading
 import time
 import os
 from math import ceil
+
+import urllib
+
+import requests
 
 def rgb(value):
     value = value.lstrip('#')
@@ -19,7 +24,7 @@ class displayThread: #(threading.Thread):
     #    threading.Thread.__init__(self)
         self.nmr = 000
         self.part = 0
-
+        self.uris = [] # urls for notification (post) ["http://www.localhost:8080/set_status"]
 
         self.file = "" 
         self.fileset = False
@@ -39,6 +44,23 @@ class displayThread: #(threading.Thread):
         pygame.display.init()
         pygame.font.init()
         pygame.mouse.set_visible(False)
+        
+    def get_status(self):
+        return {
+            "nmr" : self.nmr,
+            "part" : self.part,
+            "file" : self.file,
+            "fileset" : self.fileset,
+            "zalm" : self.zalm,
+            "config": self.config,
+        }
+        
+    def notify(self):
+        for uri in self.uris:
+            try:
+                requests.post(uri, json=self.get_status(), timeout=1)
+            except Exception as e:
+                print("Error", e)
 
     def get_zalm(self): 
         return self.zalm
@@ -155,7 +177,7 @@ class displayThread: #(threading.Thread):
     
     def display_long_text(self, text, color):
         
-        font_size = 600
+        font_size = 800
         
         while 1:
             font_zalm = pygame.font.Font("fonts/DroidSerif/DroidSerif-Regular.ttf", font_size) #400
@@ -358,6 +380,7 @@ class displayThread: #(threading.Thread):
                     screen.fill(rgb("#000000"))
 
                 pygame.display.flip() # update all
+                self.notify()
                 self.changed = False
             if not self.nmr: # vyply displej bez ohledu na zmenu
                 if not self.pwr_is_off and time.time() - self.disoff > self.offlimit:
