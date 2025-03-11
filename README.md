@@ -74,6 +74,13 @@ sudo reboot # zkusíme, jestli to funguje
 
 Vypínání displeje
 -----------------
+
+kmsblank -c 0
+
+https://forums.raspberrypi.com/viewtopic.php?t=363392
+
+
+
 sudo apt install cec-utils
 echo 'standby 0' | cec-client -s -d 1    # turns OFF
 echo 'on 0' | cec-client -s -d 1         # turns ON

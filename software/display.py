@@ -5,6 +5,7 @@ import pygame
 import time
 import os
 from math import ceil
+from subprocess import Popen, PIPE
 
 import requests
 
@@ -197,6 +198,8 @@ class displayApp:
         self.changed = True
         self.last_change = time.time()
 
+        self.kmsproc = None
+
     def conf(self, k):
         """ Vraci barvu podle klice """
         return self.config.get(k, (0, 0, 0))
@@ -308,9 +311,15 @@ class displayApp:
             if self.pwr_is_off or force:
                 os.system("vcgencmd display_power 1")
                 self.pwr_is_off = False
+                # send <enter> key to subprocess (turn hdmi back on)
+                if self.kmsproc is not None:
+                    self.kmsproc.communicate('\n')
+                    self.kmsproc = None
         else:
             if not self.pwr_is_off or force:
-                os.system("vcgencmd display_power 0")
+                if self.kmsproc is None:
+                    self.kmsproc = Popen(['kmsblank', '-c', '0'], stdin=PIPE, text=True)
+
                 self.pwr_is_off = True
 
     def run(self):
