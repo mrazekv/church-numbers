@@ -356,6 +356,7 @@ class displayApp:
                 done = done or self.handle_key(event)
 
             if self.changed:
+                self.changed = False
                 if self.nmr:  # neni vyply displej
                     self.disoff = None
                     self.set_power_state(True)
@@ -415,7 +416,6 @@ class displayApp:
 
                 pygame.display.flip()  # update all
                 self.notify() # poslat notifikaci o zmene
-                self.changed = False
             if not self.nmr:  # vyply displej bez ohledu na zmenu
                 if not self.pwr_is_off and time.time() - self.disoff > self.offlimit:
                     self.set_power_state(False)
