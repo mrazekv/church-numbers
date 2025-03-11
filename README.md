@@ -48,8 +48,8 @@ Raspbian obsahuje nástroj ``sudo raspi-config``, který umožňuje nastavit cel
 Dále je potřeba do systému doinstalovat tyto nástroje (pygame je hlavní knihovna pro zobrazování, poslední dva nástroje jsou pro vytvoření WiFi hot-spotu a mc je určeno pro jednodušší správu):
 
 
-    sudo apt-get install python3-pygame python3-tornado mc vim git
-    
+    sudo apt-get install python3-pygame python3-tornado mc vim git libegl-dev
+
 
 Nastavení splash-screen
 -----------------

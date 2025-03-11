@@ -22,7 +22,8 @@ class displayApp:
         self.is_slave = is_slave
         # urls for notification (post) ["http://www.localhost:8080/set_status"]
         if not is_slave:
-            self.uris = ["http://localhost:8000/set_status"]
+            #self.uris = ["http://localhost:8000/set_status"]
+            self.uris = [] # no slave device
         else:
             self.master = "http://localhost:8080"
             self.uris = []
