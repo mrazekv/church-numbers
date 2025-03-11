@@ -61,26 +61,29 @@
 
 
 		<!-- one line form with textarea -->
-		<form  onsubmit="return ajaxSubmit(this);" id="form-zalm">
+		<form onsubmit="return ajaxSubmit(this);" id="form-zalm">
 			<div class="form-group">
 				<label for="text">Text žalmu (aktivuje se číslem 001 nebo slokou 99, nepoužívejte nové řádky):</label>
 				<textarea class="form-control" id="text" name="text" rows="3"></textarea>
 			</div>
-			<button type="submit" class="btn btn-primary">Odeslat</button>
+			<button type="submit" class="btn btn-primary">Nahrát</button>
+			<button type="submit" class="btn btn-warning" name="view">Nahrát a zobrazit</button>
 		</form>
 
 		<p>
 
-			<div class="btn-group">
-				<a href="#" class="btn btn-dark" onclick="refreshCache(true); return false;">Historie (abecedně)</a>
-				<a href="#" class="btn btn-dark" onclick="refreshCache(false); return false;">Historie (časově)</a>
-				
-			</div>
-			
-			
-			
-			<ul id="history" class="list-group mt-1">
-			</ul>
+		<div class="btn-group">
+			<a href="#" class="btn btn-dark" onclick="refreshCache(true); return false;">Historie (abecedně)</a>
+			<a href="#" class="btn btn-dark" onclick="refreshCache(false); return false;">Historie (časově)</a>
+
+		</div>
+
+
+
+		<ul id="history" class="list-group mt-1">
+		</ul>
+
+		<a href="/status" style="color: gray; font-size: 10px;">Stav systému</a>
 		</p>
 	</main>
 	<!-- Optional JavaScript -->
@@ -101,12 +104,12 @@
 			$.get("/get_zalm_cache", function (data) {
 				console.log(data);
 
-				if(alph) {
+				if (alph) {
 					//sort data
 					data = data.sort((a, b) => a.localeCompare(b));
 				}
 				else {
-				// reverse data
+					// reverse data
 					data = data.reverse();
 				}
 
@@ -120,7 +123,7 @@
 					$(this).text($(this).attr("pdata"));
 
 					// add two buttons
-					$(this).append("<span class=\"pull pull-right btn-group\"><a href=\"#\" class=\"btn btn-primary btn-sm b-submit\">Odeslat</a><a href=\"#\" class=\"btn btn-danger btn-sm b-delete\">Smazat</a></span>");
+					$(this).append("<span class=\"pull pull-right btn-group\"><a href=\"#\" class=\"btn btn-primary btn-sm b-submit\">Nahrát</a><a href=\"#\" class=\"btn btn-warning btn-sm b-submit-send\">Zobrazit</a><a href=\"#\" class=\"btn btn-danger btn-sm b-delete\">Smazat</a></span>");
 				});
 
 				$(".b-submit").click(function () {
@@ -129,8 +132,18 @@
 					return false;
 				});
 
+				$(".b-submit-send").click(function () {
+					$("#text").val($(this).parent().parent().attr("pdata"));
+					$("#form-zalm").submit();
+					data = data.substr(0, 3) + "99";
+					updateView();
+					send();
+					return false;
+				});
+
+
 				$(".b-delete").click(function () {
-					if(!confirm("Opravdu smazat " + $(this).parent().parent().attr("pdata") + "?")) {
+					if (!confirm("Opravdu smazat " + $(this).parent().parent().attr("pdata") + "?")) {
 						return false;
 					}
 					$.ajax({
@@ -153,11 +166,23 @@
 			$.get("/get_zalm", function (data) {
 				$("#text").val(data);
 			});
+
+			$.get("/get", function (d)  {
+				data = d;
+				updateView();
+			});
 			//refreshCache(true);
-			
+
 		});
 
 		function ajaxSubmit(form) {
+			// is submitted by #view button
+			if (form.view) {
+				data = data.substr(0, 3) + "99";
+				updateView();
+				send();
+			}
+
 			$.ajax({
 				type: "POST",
 				url: "/set_zalm",
@@ -227,12 +252,8 @@
 			data = num + part;
 			updateView();
 			send();
-
 		});
 
-		$("document").ready(function () {
-
-		});
 	</script>
 </body>
 

@@ -124,7 +124,9 @@ Po restartu můžete zkusit, že aplikace naběhne, stiskem klávesy ESC se dost
 
 **Pozor** čísla jsou po startu vyplé, pro zapnutí stačí na numerické klávesnici odeslat nějaké nenulové trojčíslí. Pro vypnutí stačí odeslat kód *000*. Ve vypnutém stavu by odběr měl být minimální (monitoru i rPi).
 
-
+Podružný systém
+------------------
+Pro fungování podružného systému stačí do display.py parametru uri přidat adresu slave zařízení. Naopak slave zařízení potřebuje znát adresu hlavního řadiče. Hlavní řadič se spouští jako "main.py", podružný jako "slave.py". Main jede na portu 8080, slave na 8000.
 
 ## Zastaralé
 (není třeba, pokud budeme používat jiný WiFi router)
