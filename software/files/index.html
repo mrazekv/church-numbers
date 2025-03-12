@@ -67,7 +67,7 @@
 				<textarea class="form-control" id="text" name="text" rows="3"></textarea>
 			</div>
 			<button type="submit" class="btn btn-primary">Nahrát</button>
-			<button type="submit" class="btn btn-warning" name="view">Nahrát a zobrazit</button>
+			<!--<button type="submit" class="btn btn-warning" name="view">Nahrát a zobrazit</button>-->
 		</form>
 
 		<p>
@@ -123,7 +123,7 @@
 					$(this).text($(this).attr("pdata"));
 
 					// add two buttons
-					$(this).append("<span class=\"pull pull-right btn-group\"><a href=\"#\" class=\"btn btn-primary btn-sm b-submit\">Nahrát</a><a href=\"#\" class=\"btn btn-warning btn-sm b-submit-send\">Zobrazit</a><a href=\"#\" class=\"btn btn-danger btn-sm b-delete\">Smazat</a></span>");
+					$(this).append("<span class=\"pull pull-right btn-group\"><a href=\"#\" class=\"btn btn-primary btn-sm b-submit\">Nahrát</a><a href=\"#\" class=\"btn btn-danger btn-sm b-delete\">Smazat</a></span>");
 				});
 
 				$(".b-submit").click(function () {
@@ -132,14 +132,6 @@
 					return false;
 				});
 
-				$(".b-submit-send").click(function () {
-					$("#text").val($(this).parent().parent().attr("pdata"));
-					$("#form-zalm").submit();
-					data = data.substr(0, 3) + "99";
-					updateView();
-					send();
-					return false;
-				});
 
 
 				$(".b-delete").click(function () {
@@ -176,13 +168,6 @@
 		});
 
 		function ajaxSubmit(form) {
-			// is submitted by #view button
-			if (form.view) {
-				data = data.substr(0, 3) + "99";
-				updateView();
-				send();
-			}
-
 			$.ajax({
 				type: "POST",
 				url: "/set_zalm",

@@ -9,6 +9,9 @@ from subprocess import Popen, PIPE
 
 import requests
 
+os.environ["SDL_VIDEODRIVER"] = "kmsdrm"
+
+
 def rgb(value):
     value = value.lstrip('#')
     if len(value) == 6:
@@ -48,10 +51,15 @@ class displayApp:
         self.set_scheme(0)
 
         self.changed = True
+        
         pygame.display.init()
         pygame.font.init()
         pygame.mouse.set_visible(False)
 
+        pygame.init()
+        displayInfo = pygame.display.Info()
+        print(displayInfo)
+        
     def get_status(self):
         return {
             "nmr": self.nmr,
@@ -276,7 +284,8 @@ class displayApp:
 
             y_offset += fh
 
-    def handle_key(self, event):            
+    def handle_key(self, event):         
+        #print("event", event)   
         if event.type == pygame.QUIT:
             return True
 
@@ -311,15 +320,9 @@ class displayApp:
             if self.pwr_is_off or force:
                 os.system("vcgencmd display_power 1")
                 self.pwr_is_off = False
-                # send <enter> key to subprocess (turn hdmi back on)
-                if self.kmsproc is not None:
-                    self.kmsproc.communicate('\n')
-                    self.kmsproc = None
         else:
             if not self.pwr_is_off or force:
-                if self.kmsproc is None:
-                    self.kmsproc = Popen(['kmsblank', '-c', '0'], stdin=PIPE, text=True)
-
+                os.system("vcgencmd display_power 0")
                 self.pwr_is_off = True
 
     def run(self):
@@ -328,7 +331,9 @@ class displayApp:
         print(modes)
         mode = max(modes)
         mode = (1920, 1080) # DEBUG
-        screen = pygame.display.set_mode(mode)
+        screen = pygame.display.set_mode(mode, pygame.DOUBLEBUF)
+        
+        #screen = pygame.display.set_mode(mode)
         self.screen = screen
         s_width, s_height = mode
         self.s_width = s_width
@@ -351,11 +356,13 @@ class displayApp:
         if self.is_slave:
             print("is slave")
             if self.last_slave_update + 120 < time.time():
-                print("do slave update")
+                #print("do slave update")
                 self.last_slave_update = time.time()
                 self.slave_update()
                 
+        curr_state = False
         while not done:
+            clock.tick(10) # 10 FPS
             if self.is_slave:
                 if self.last_slave_update + 120 < time.time():
                     self.last_slave_update = time.time()
@@ -364,9 +371,14 @@ class displayApp:
             for event in pygame.event.get():
                 done = done or self.handle_key(event)
 
-            if self.changed:
+            if curr_state != self.get_status() or self.changed:
+                #print(" --- redraw", self.changed)
+                #start_time = time.time()
+                curr_state = self.get_status()
                 self.changed = False
-                if self.nmr:  # neni vyply displej
+                #print("Status time: ", time.time() - start_time , " s")
+
+                if curr_state["nmr"]:  # neni vyply displej
                     self.disoff = None
                     self.set_power_state(True)
 
@@ -376,44 +388,44 @@ class displayApp:
                         self.display_long_text(
                             self.get_zalm(), self.conf("number"))
 
-                    elif not self.file and not self.part:  # pouze cislo
-                        text = font_large.render(f"{self.nmr:03d}", True, self.conf("number"))
+                    elif not curr_state["file"] and not self.part:  # pouze cislo
+                        text = font_large.render(f"{curr_state['nmr']:03d}", True, self.conf("number"))
                         
                         screen.blit(text, ((s_width - text.get_width()) //
                                     2, (s_height + 50 - text.get_height()) // 2))
 
                     else:  # vsechny informace
-                        text = font.render(f"{self.nmr:03d}", True, self.conf("number"))
-                        if self.part < 10:
+                        text = font.render(f"{curr_state['nmr']:03d}", True, self.conf("number"))
+                        if curr_state["part"] < 10:
                             font2 = font2_large
                         else:
                             font2 = font2_small
 
-                        text2 = font2.render(f"{self.part}", True, self.conf("part"))
+                        text2 = font2.render(f"{curr_state['part']}", True, self.conf("part"))
                         
                         part_corr = font.get_descent() - font2.get_descent()
 
                         # pokud je zpevnik, posnuout dolu
                         bottom = s_height
-                        if not self.file:
+                        if not curr_state["file"]:
                             bottom -= 50
 
                         corr1 = -text2.get_width() // 2
                         corr2 = text.get_width() // 2
 
-                        if not self.part:  # pokud eni cislo sloky, neni potreba posun
+                        if not curr_state["part"]:  # pokud eni cislo sloky, neni potreba posun
                             corr1 = 0
 
                         screen.blit(
                             text, (corr1 + (s_width - text.get_width()) // 2, bottom - text.get_height()))
 
-                        if self.part:  # cislo sloky
+                        if curr_state["part"]:  # cislo sloky
                             screen.blit(text2, (corr2 + (s_width - text2.get_width()) //
                                         2, bottom - text2.get_height() + part_corr))
 
-                        if self.file:  # zpevnik
+                        if curr_state["file"]:  # zpevnik
                             text3 = font3.render(
-                                self.file, True, self.conf("file"))
+                                curr_state["file"], True, self.conf("file"))
                             screen.blit(
                                 text3, ((s_width - text3.get_width()) // 2, 110 - text3.get_height() // 2))
 
@@ -422,16 +434,27 @@ class displayApp:
                         self.disoff = time.time()
 
                     screen.fill(rgb("#000000"))
+                #print("Draw time: ", time.time() - start_time , " s")
+                pygame.display.update()  # update all
+                pygame.event.pump()
+                pygame.display.update()  # update all twice because two buffers?
+                pygame.event.pump()
+                pygame.display.update()  # update all twice because two buffers?
+                pygame.event.pump()
+               # pygame.display.update()  # update all
+                #pygame.display.update()  # update all
+                #print("Flip time: ", time.time() - start_time , " s")
+                #pygame.time.delay(1000)
+                #print("Delay time: ", time.time() - start_time , " s")
 
-                pygame.display.flip()  # update all
                 self.notify() # poslat notifikaci o zmene
-            if not self.nmr:  # vyply displej bez ohledu na zmenu
+            if not curr_state["nmr"]:  # vyply displej bez ohledu na zmenu
                 if not self.pwr_is_off and time.time() - self.disoff > self.offlimit:
                     self.set_power_state(False)
             if not self.pwr_is_off and time.time() - self.last_change > self.totlimit:
                 self.set_power_state(False)
 
-            clock.tick(10)
+            
 
         self.set_power_state(True, force=True)
 
