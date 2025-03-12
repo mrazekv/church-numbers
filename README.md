@@ -69,6 +69,7 @@ sudo raspi-config
 sudo plymouth-set-default-theme -l
 # jedno jsme zvolili a nastavili
 sudo plymouth-set-default-theme spinner
+sudo plymouth-set-default-theme -R spinner
 sudo reboot # zkusíme, jestli to funguje
 ```
 
@@ -124,12 +125,32 @@ Pokud neexistuje, musí se vytvořit
 
 ```sh
 #!/bin/sh -e
+plymouth --quit
 cd /home/pi/church-numbers/software; python3 main.py 2>&1 >/dev/null
 exit(0)
 ```
 Po restartu můžete zkusit, že aplikace naběhne, stiskem klávesy ESC se dostanete vždy do konzole. V normální provozu však aplikace bude běžet pořád.
 
 **Pozor** čísla jsou po startu vyplé, pro zapnutí stačí na numerické klávesnici odeslat nějaké nenulové trojčíslí. Pro vypnutí stačí odeslat kód *000*. Ve vypnutém stavu by odběr měl být minimální (monitoru i rPi).
+
+Fungování nad portem 80
+---------
+```sh 
+sudo apt install nginx
+```
+
+Do nginx konfigurace přidat
+```conf
+    ...
+    location / {
+        proxy_pass http://127.0.0.1:8080/;
+        proxy_http_version 1.0;
+        # First attempt to serve request as file, then
+        # as directory, then fall back to displaying a 404.
+        #try_files $uri $uri/ =404;
+    }
+    ....
+```
 
 Podružný systém
 ------------------

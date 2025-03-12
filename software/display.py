@@ -9,7 +9,7 @@ from subprocess import Popen, PIPE
 
 import requests
 
-os.environ["SDL_VIDEODRIVER"] = "kmsdrm"
+#os.environ["SDL_VIDEODRIVER"] = "kmsdrm"
 
 
 def rgb(value):
@@ -51,7 +51,7 @@ class displayApp:
         self.set_scheme(0)
 
         self.changed = True
-        
+
         pygame.display.init()
         pygame.font.init()
         pygame.mouse.set_visible(False)
@@ -59,7 +59,7 @@ class displayApp:
         pygame.init()
         displayInfo = pygame.display.Info()
         print(displayInfo)
-        
+
     def get_status(self):
         return {
             "nmr": self.nmr,
@@ -69,7 +69,7 @@ class displayApp:
             "zalm": self.zalm,
             "config": self.config,
         }
-        
+
     def set_status(self, status):
         try:
             for n in ["nmr", "part", "file", "fileset", "zalm", "config"]:
@@ -81,7 +81,7 @@ class displayApp:
                 setattr(self, n, status[n])
         except Exception as e:
             print("Error", e)
-            
+
     def slave_update(self):
         print("Slave update")
         try:
@@ -214,11 +214,11 @@ class displayApp:
 
     def display_long_text(self, text, color):
         """ Zobrazi dlouhy text na stred obrazovky, zacina od nejvetsiho pisma a postupne zmensuje.
-        
+
         Args:
             text (str): text k zobrazeni
             color (tuple): barva textu
-        
+
         """
         font_size = 800
 
@@ -284,8 +284,8 @@ class displayApp:
 
             y_offset += fh
 
-    def handle_key(self, event):         
-        #print("event", event)   
+    def handle_key(self, event):
+        #print("event", event)
         if event.type == pygame.QUIT:
             return True
 
@@ -331,8 +331,8 @@ class displayApp:
         print(modes)
         mode = max(modes)
         mode = (1920, 1080) # DEBUG
-        screen = pygame.display.set_mode(mode, pygame.DOUBLEBUF)
-        
+        screen = pygame.display.set_mode(mode, pygame.FULLSCREEN) # | pygame.OPENGL | pygame.DOUBLEBUF | pygame.HWSURFACE)
+
         #screen = pygame.display.set_mode(mode)
         self.screen = screen
         s_width, s_height = mode
@@ -359,7 +359,7 @@ class displayApp:
                 #print("do slave update")
                 self.last_slave_update = time.time()
                 self.slave_update()
-                
+
         curr_state = False
         while not done:
             clock.tick(10) # 10 FPS
@@ -367,7 +367,7 @@ class displayApp:
                 if self.last_slave_update + 120 < time.time():
                     self.last_slave_update = time.time()
                     self.slave_update()
-            
+
             for event in pygame.event.get():
                 done = done or self.handle_key(event)
 
@@ -390,7 +390,7 @@ class displayApp:
 
                     elif not curr_state["file"] and not self.part:  # pouze cislo
                         text = font_large.render(f"{curr_state['nmr']:03d}", True, self.conf("number"))
-                        
+
                         screen.blit(text, ((s_width - text.get_width()) //
                                     2, (s_height + 50 - text.get_height()) // 2))
 
@@ -402,7 +402,7 @@ class displayApp:
                             font2 = font2_small
 
                         text2 = font2.render(f"{curr_state['part']}", True, self.conf("part"))
-                        
+
                         part_corr = font.get_descent() - font2.get_descent()
 
                         # pokud je zpevnik, posnuout dolu
@@ -435,11 +435,11 @@ class displayApp:
 
                     screen.fill(rgb("#000000"))
                 #print("Draw time: ", time.time() - start_time , " s")
-                pygame.display.update()  # update all
+                pygame.display.flip()  # update all
                 pygame.event.pump()
-                pygame.display.update()  # update all twice because two buffers?
+                pygame.display.flip()  # update all twice because two buffers?
                 pygame.event.pump()
-                pygame.display.update()  # update all twice because two buffers?
+                pygame.display.flip()  # update all twice because two buffers?
                 pygame.event.pump()
                # pygame.display.update()  # update all
                 #pygame.display.update()  # update all
@@ -454,7 +454,7 @@ class displayApp:
             if not self.pwr_is_off and time.time() - self.last_change > self.totlimit:
                 self.set_power_state(False)
 
-            
+
 
         self.set_power_state(True, force=True)
 
