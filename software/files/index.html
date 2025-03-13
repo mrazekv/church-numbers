@@ -67,7 +67,7 @@
 				<textarea class="form-control" id="text" name="text" rows="3"></textarea>
 			</div>
 			<button type="submit" class="btn btn-primary">Nahrát</button>
-			<!--<button type="submit" class="btn btn-warning" name="view">Nahrát a zobrazit</button>-->
+			<button class="btn btn-warning" id="view">Nahrát a zobrazit</button>
 		</form>
 
 		<p>
@@ -161,6 +161,13 @@
 
 			$.get("/get", function (d)  {
 				data = d;
+				updateView();
+			});
+
+			$("#view").click(function () {
+				ajaxSubmit($("#form-zalm"));
+				data = "00100";
+				send();
 				updateView();
 			});
 			//refreshCache(true);
