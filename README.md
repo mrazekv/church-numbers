@@ -1,43 +1,49 @@
-Kostelní čísla
-=========================
-Ukazatel čísla písně například do kostelů. Umožńuje zobrazit číslo písně (3 číslice z Kancionálu) a volitelně číslo sloky i název zpěvníku. Čísla je možné ovládat přes libovolný chytrý telefon (tablet) - WiFi rozhraní, přes USB klávesnici (i bezdrátovou numerickou) a nebo přes vlastní radiový přenos realizovaný nějakým modulem a převodníkem implementovaným např. přes Arduino.
+# Kostelní čísla
+Ukazatel čísla písně například do kostelů. Umožńuje zobrazit číslo písně (3 číslice z Kancionálu) a volitelně číslo sloky i název zpěvníku. Čísla je možné ovládat přes libovolný chytrý telefon (tablet) - WiFi rozhraní, přes USB klávesnici (i bezdrátovou numerickou).
 
 Hlavní výhodou těchto čísel je cena (kompletní náklady mohou být do 4000 Kč), jednoduchost nastavování, rozšířitelnost a mimo jiné i estetika. Čísla umožňují totiž nastavit barvy podle interiéru kostela a použité písmo se hodí k rázu kostelů.
 
 Pokud se tímto kódem inspirujete, prosím kontaktujte autory pro uvedení referencí. Pokud systém rozšíříte o nějakou zajímavou funkčnost, rádi vaši úpravu zahrneme do hlavní větve. Produkt je šířen pod licencí [GPL](LICENSE) - projekty založené na našem projektu by měli mít stejnou licenci.
 
-Systém nyní umožňuje zadat i žalm - s číslem 
+Systém nyní umožňuje zadat i žalm (antifonu). V databázi jsou přednahrané všechny Olejníkovy antifony, je možné však zadat a uložit libovolný další text. Při zadání speciálího kódu (999) se přepne na "Zpěvníček" na dětské mše. Vše je samozřejmě konfigurovatelné, u ordinárií se např. zobrazí název, je možné zavést další zpěvníky (např. Hosana atd). Stačí změna pár řádků kódu.
+
+![Zobrazení čísla písně a sloky](img/cislo.jpg)
+![Zobrazení antifony](img/zalm.jpg)
+![Zpěvníček](img/zpevnicek.jpg)
 
 
-Struktura souborů
-============================
+## Struktura souborů
  - [software](software) - složka s programem
    - [main.py](software/main.py) - hlavní modul
    - [display.py](software/display.py) - zobrazování, logika slok atd.
    - [web.py](software/web.py) - webový server
    - [files](software/files) - statická data webového serveru; musí být explicitně vyjmenovaná ve [web.py](software/web.py)
-   - [fonts](software/fonts) -git config pull.rebase falsogie (špatné pozorovací úhly)
+   - [fonts](software/fonts) 
+   
+   
+## Použité zařízení
+Pro fungování těchto čísel potřebujete
+ - rozumně velký monitor :computer:
+    - nesmí to být TN technologie (špatné pozorovací úhly)
     - doporučuji s tenkým rámečkem, loga je možné přelepit lepící páskou
     - s podporou VESA držáku (kromě designových dneska většina)
  - RaspberryPi 
     - nejlépe s integrovanou WiFi
-    - my zvolili Raspberry Pi Zero W
-    - k tomu nutný samozřejmě zdroj, SD karta, konektory
- - VESA držák na zeď (podle stavebních dispozic kostela)
- - ovládací zařízení - vlastní zařízení přes UART / nějaký mobil či tablet / bezdrátová numerická klávesnice (nebyla zkoušena, nevíme, jaký má dosah, vhodné zkusit předem například na notebooku)
-  - elektrická přípojka :electric_plug:
+    - my zvolili Raspberry Pi Zero W 2
+    - k tomu nutný samozřejmě zdroj, SD karta (celkem cca 600 Kč). SD kartu doporučuji kvalitnější (např pro kamery), min 8 GB.
+ - VESA držák na zeď (podle stavebních dispozic kostela nebo i stojánek monitoru, pokud je umístěno na kazatelně)
+ - ovládací zařízení - stačí tablet, je možné vytvořit vlastní zařízení s klávesnicí pro varhaníka
+ - WiFi router (obyčejný, není potřeba, aby pak byl připojen k internetu), cca 400 Kč.
+ - elektrická přípojka :electric_plug:
 
-Instalace Raspberry
-===============================
-Malý počítač je založený na systému Linux, proto je vhodné, aby zařízení nastavoval někdo, kdo se v Linuxu orientuje.
+## Instalace Raspberry
+Malý počítač je založený na systému Linux, proto je vhodné, aby zařízení nastavoval někdo, kdo se v Linuxu orientuje. Stačí jít přes návody na internetu
 
-Prvotní spuštění
----------------------
-Na Raspberry zařízení je vhodné dát nějakou distribuci s baličkovacím systeém, my zvolili *Raspbian Lite*. Čísla nevyužívají X-Window system, takže vše je v příkazové řádce.
+### Prvotní spuštění
+Na Raspberry zařízení je vhodné dát nějakou distribuci s baličkovacím systeém, my zvolili *Raspbian Lite*. Čísla nevyužívají X-Window system, takže vše je v příkazové řádce. Pokud použijete Raspberry Pi Manager (oficiální nástroj), tak většinu nastavení (např wifi) můžete udělat před vytvořením obrazu
 
-Nastavení systému
----------------------
-Raspbian obsahuje nástroj ``sudo raspi-config``, který umožňuje nastavit celou řadu důležitých parametrů
+### Nastavení systému
+Raspbian obsahuje nástroj `sudo raspi-config`, který umožňuje nastavit celou řadu důležitých parametrů
 
   - nastavit heslo
   - povolit SSH server
@@ -47,18 +53,54 @@ Raspbian obsahuje nástroj ``sudo raspi-config``, který umožňuje nastavit cel
 
 Dále je potřeba do systému doinstalovat tyto nástroje (pygame je hlavní knihovna pro zobrazování, poslední dva nástroje jsou pro vytvoření WiFi hot-spotu a mc je určeno pro jednodušší správu):
 
-
+```sh
     sudo apt-get install python3-pygame python3-tornado mc vim git libegl-dev
+```
+
+### Nahrání aplikace
+Přes `git` stáhneme nejnovější verzi aplikace. Pro odzkoušení stačí spustit
+
+```sh
+git checkout https://github.com/mrazekv/church-numbers.git
+cd church-numbers/software
+cp zalm_cache.default.json zalm_cache.json # aktivace olejníkových žalmů
+
+python3 main.py
+# zadat tři nenulová čísla (viz poznámka na konci odstavce)
+```
+
+Program ukončíme stiskem klávesy ESC. V souboru [main.py](software/main.py) můžeme zakomentovat např. UART modul, pokud jej nechceme využivat. Nastavení všech barevných konstant naleznete v souboru [display.py](software/display.py), stejně tak můžete doplnit nějakou logiku pro zobrazení názvů zpěvníků atd. Program je psaný v jazyce **Python**, který by měl být jednoduše čitelný. Pozor jen na případnou záměnu mezer za tabulátory, to by mohlo potom program poškodit.
+
+Pro nastavení startu programu při bootování systému vložte do souboru
+
+```sh  
+sudo nano /etc/rc.local
+sudo chmod 0755 /etc/.rc.local
+```
+
+před příkaz `exit 0` následující kód
+     
+```sh
+#!/bin/sh -e
+plymouth --quit
+cd /home/pi/church-numbers/software; python3 main.py 2>&1 >/dev/null
+exit(0)
+```
+
+Po restartu můžete zkusit, že aplikace naběhne, stiskem klávesy ESC se dostanete vždy do konzole. V normální provozu však aplikace bude běžet pořád.
+
+**Pozor** čísla jsou po startu vyplé, pro zapnutí stačí na numerické klávesnici odeslat nějaké nenulové trojčíslí. Pro vypnutí stačí odeslat kód *000*. Ve vypnutém stavu by odběr měl být minimální (monitoru i rPi). Samozřejmě už můžeme využít wifi
+
+Nyní by mělo být možné se k WiFi připojit a na adrese http://192.168.XX.XX:8080  uvidíme klávesnici (je třeba změnit adresu podle konfigurace wifi).
+
+![Klávesnice](img/klavesnice.png)
 
 
-Nastavení splash-screen
------------------
-Aby při spouštění systému neběžel text po obrazovce (jen na chvíli se objeví logo maliny, kterému se nevyhneme), je potřeba aktivovat balík *plymouth-screen*, který je sice nainstalován, ale potřebuje doladit
+### Nastavení splash-screen
+Aby při spouštění systému neběžel text po obrazovce (jen na chvíli se objeví logo maliny, kterému se nevyhneme), je potřeba aktivovat balík *plymouth-screen*, který je sice nainstalován, ale potřebuje doladit. 
 
 
 ```bash
-# v souboru /boot/config.txt odkomentovat disable_overscan pro skrytí černých okrajů
-sudo vim.tiny /boot/config.txt
 
 sudo apt-get install plymouth plymouth-themes pix-plym-splash
 
@@ -68,73 +110,40 @@ sudo raspi-config
 # výpis použitelných témat
 sudo plymouth-set-default-theme -l
 # jedno jsme zvolili a nastavili
-sudo plymouth-set-default-theme spinner
 sudo plymouth-set-default-theme -R spinner
 sudo reboot # zkusíme, jestli to funguje
 ```
 
-Vypínání displeje
------------------
+### Vypínání displeje
+Aby nám fungovalo vypínání displeje po neaktivitě (20 minut po vyplém 000 a 1.5 hodiny po trvale vyplém), je nutné na nejnovějším rasberry se přepnout na starý driver 
+https://github.com/raspberrypi/firmware/issues/1224#issuecomment-1470791044. 
 
-kmsblank -c 0
+```sh
+sudo nano /boot/firmware/config.txt
+# Change dtoverlay=vc4-kms-v3d to dtoverlay=vc4-fkms-v3d
+sudo reboot
+```
 
-https://forums.raspberrypi.com/viewtopic.php?t=363392
 
+Pak by měly fungovat příkazy
+```sh
+vcgencmd display_power 0 # vypnutí
+vcgencmd display_power 1 # zapnutí
+```
 
+Další varianty, které mi ale nefungovaly:
+```sh
+kmsblank -c 0 # nefunguje při zaplém pygame modulu
 
 sudo apt install cec-utils
 echo 'standby 0' | cec-client -s -d 1    # turns OFF
 echo 'on 0' | cec-client -s -d 1         # turns ON
-
-
-https://github.com/raspberrypi/firmware/issues/1224#issuecomment-1470791044
-
-Changing the hardware acceleration driver from vc4-kms-v3d to vc4-fkms-v3d fixed the issue with the vcgencmd display_power command on RPi4B.
-
-Don't quite understand why (and in my case didn't need to), but still wanted to share. Steps:
-
-sudo nano /boot/config.txt or any other editor
-Change dtoverlay=vc4-kms-v3d to dtoverlay=vc4-fkms-v3d
-reboot
-
-or switch over rapsi to Advanced options - Legacy driver
-
-
-
-Nahrání aplikace
-----------
-Přes `git` stáhneme nejnovější verzi aplikace. Pro odzkoušení stačí spustit
-
-```bash
-    cd cisla
-    python3 main.py
-    # zadat tři nenulová čísla (viz poznámka na konci odstavce)
 ```
 
-Program ukončíme stiskem klávesy ESC. V souboru [main.py](software/main.py) můžeme zakomentovat např. UART modul, pokud jej nechceme využivat. Nastavení všech barevných konstant naleznete v souboru [display.py](software/display.py), stejně tak můžete doplnit nějakou logiku pro zobrazení názvů zpěvníků atd. Program je psaný v jazyce **Python**, který by měl být jednoduše čitelný. Pozor jen na případnou záměnu mezer za tabulátory, to by mohlo potom program poškodit.
 
-Pro nastavení startu programu při bootování systému vložte do souboru
-  
-    sudo nano /etc/rc.local
 
-před příkaz `exit 0` následující kód
-     
-    cd /home/pi/church-numbers/software; python3 main.py 2>&1 >/dev/null
-
-Pokud neexistuje, musí se vytvořit
-
-```sh
-#!/bin/sh -e
-plymouth --quit
-cd /home/pi/church-numbers/software; python3 main.py 2>&1 >/dev/null
-exit(0)
-```
-Po restartu můžete zkusit, že aplikace naběhne, stiskem klávesy ESC se dostanete vždy do konzole. V normální provozu však aplikace bude běžet pořád.
-
-**Pozor** čísla jsou po startu vyplé, pro zapnutí stačí na numerické klávesnici odeslat nějaké nenulové trojčíslí. Pro vypnutí stačí odeslat kód *000*. Ve vypnutém stavu by odběr měl být minimální (monitoru i rPi).
-
-Fungování nad portem 80
----------
+### Fungování nad portem 80
+Výhoda tohoto řešení je pak kompatibilita s HTTP/1.1 protokolem
 ```sh 
 sudo apt install nginx
 ```
@@ -152,97 +161,12 @@ Do nginx konfigurace přidat
     ....
 ```
 
-Podružný systém
-------------------
-Pro fungování podružného systému stačí do display.py parametru uri přidat adresu slave zařízení. Naopak slave zařízení potřebuje znát adresu hlavního řadiče. Hlavní řadič se spouští jako "main.py", podružný jako "slave.py". Main jede na portu 8080, slave na 8000.
 
-## Zastaralé
-(není třeba, pokud budeme používat jiný WiFi router)
+## Podružný systém
+Systém umožňuje, aby v jedné síti byly dvě zařízení - jedno hlavní a druhé podružné - další displej do jiné části kostela.
 
-Snížení počtu přístupů na kartu
--------------
-Zdroj: https://medium.com/@andreas.schallwig/how-to-make-your-raspberry-pi-file-system-read-only-raspbian-stretch-80c0f7be7353
-
-    sudo apt-get remove --purge wolfram-engine triggerhappy anacron logrotate dphys-swapfile xserver-common lightdm
-    sudo apt-get autoremove --purge
-    sudo systemctl disable bootlogs
-    sudo systemctl disable console-setup
-    sudo apt-get install busybox-syslogd
-    sudo dpkg --purge rsyslog
-
-Edit the file /boot/cmdline.txt and add the following three words at the end of the line: fastboot noswap ro
-
-Nastavení WiFi přístupového bodu
------------
-Nastavení přístupového bodu vychází z tohoto [návodu](https://www.raspberrypi.org/documentation/configuration/wireless/access-point.md). Budou se nastavovat dva balíčky *dnsmasq*, který se stará zejména o DHCP adrey; a o *hostapd*, který dělá WiFi AP.
-
-    sudo nano /etc/dhcpcd.conf
-
-A na konci do souboru zapíšeme text
-
-    interface wlan0
-        static ip_address=192.168.4.1/24
-        nohook wpa_supplicant
-
-Zazálohujeme a vytvoříme nový konfigurační soubor pro adresu rozashu
-
-    sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.old
-    sudo nano /etc/dnsmasq.conf
-
-Do souboru vložíme text
-
-    interface=wlan0      # Use the require wireless interface - usually wlan0  
-        dhcp-range=192.168.4.2,192.168.4.20,255.255.255.0,24h
-
-Pro nastavení WiFi vytvoříme další konfigurační soubor
-   
-    sudo nano /etc/hostapd/hostapd.conf
-
-Do kterého vložíme
-
-```config
-interface=wlan0
-driver=nl80211
-ssid=NaseSit
-hw_mode=g
-channel=7
-wmm_enabled=0
-macaddr_acl=0
-auth_algs=1
-ignore_broadcast_ssid=0
-wpa=2
-wpa_passphrase=NaseHesloKtereByMeloBytTajne
-wpa_key_mgmt=WPA-PSK
-wpa_pairwise=TKIP
-rsn_pairwise=CCMP
-```
-
-Změnou parametru na `ignore_broadcast_ssid=1` naši síť potom skryjeme. Potom musíme systému v souboru 
-     
-    sudo nano /etc/default/hostapd
-
-říct, kde najde konfiguraci úpravou následujícího řádku
-
-    DAEMON_CONF="/etc/hostapd/hostapd.conf"
-
-Nyní potřebné služby aktivujeme a spustíme
-
-    sudo systemctl enable hostapd.service
-    sudo systemctl enable dnsmasq.service
-    sudo service hostapd start
-    sudo service dnsmasq start
+Pro tvorbu podružného systému použijte návod výše, spouštějte však `python3 slave.py`. Předtím je však nutné, aby všechna zařízení měla napevno nastavené IP adresy (např v routeru, aby se neměnili). V master zařízení v _display.py_ do paretru uri přidáte adresy všech SLAVE zařízení: `["http://IP_SLAVE_1:8000/set_status", "http://IP_SLAVE_2:8000/set_status", ...]`. Hlavní zařízení využívá port 8080, podružné 8000.
 
 
-
-
-    sudo systemclt status hostapd.service
-    # mělo by vrátit "masked"
-    sudo systemctl unmask hostapd.service
-    # nyní by odkaz neměl být nulový
-    sudo ls -l /lib/systemd/system/hostapd.service
-
-Nyní by mělo být možné se k WiFi připojit a na adrese http://192.168.4.1:8080  uvidíme klávesnici.
-
-![Klávesnice](img/klavesnice.png)
-
-
+## Zastaralé návody
+V samostatném souboru [WIFI.md](WIFI.md) je návod, jak vytvořit WiFi hotspot přímo na raspberry. Už není využíváno.
