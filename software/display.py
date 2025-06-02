@@ -320,11 +320,12 @@ class displayApp:
     def set_power_state(self, state: bool, force=False):
         if state:
             if self.pwr_is_off or force:
-                os.system("vcgencmd display_power 1")
+                os.system("wlr-randr --output HDMI-A-1 --off")
+                os.system("wlr-randr --output HDMI-A-1 --on") # neni mozne pustit 2x za sebou
                 self.pwr_is_off = False
         else:
             if not self.pwr_is_off or force:
-                os.system("vcgencmd display_power 0")
+                os.system("wlr-randr --output HDMI-A-1 --off")
                 self.pwr_is_off = True
 
     def run(self):
@@ -437,12 +438,12 @@ class displayApp:
 
                     screen.fill(rgb("#000000"))
                 #print("Draw time: ", time.time() - start_time , " s")
-                pygame.display.flip()  # update all
-                pygame.event.pump()
-                pygame.display.flip()  # update all twice because two buffers?
-                pygame.event.pump()
-                pygame.display.flip()  # update all twice because two buffers?
-                pygame.event.pump()
+                # pygame.display.flip()  # update all
+                # pygame.event.pump()
+                # pygame.display.flip()  # update all twice because two buffers?
+                # pygame.event.pump()
+                # pygame.display.flip()  # update all twice because two buffers?
+                # pygame.event.pump()
                # pygame.display.update()  # update all
                 #pygame.display.update()  # update all
                 #print("Flip time: ", time.time() - start_time , " s")

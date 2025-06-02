@@ -54,18 +54,19 @@ Raspbian obsahuje nástroj `sudo raspi-config`, který umožňuje nastavit celou
 Dále je potřeba do systému doinstalovat tyto nástroje (pygame je hlavní knihovna pro zobrazování, poslední dva nástroje jsou pro vytvoření WiFi hot-spotu a mc je určeno pro jednodušší správu):
 
 ```sh
-    sudo apt-get install python3-pygame python3-tornado mc vim git libegl-dev
+sudo apt-get update
+sudo apt-get install python3-pygame python3-tornado mc vim git libegl-dev  cage wlr-randr
 ```
 
 ### Nahrání aplikace
 Přes `git` stáhneme nejnovější verzi aplikace. Pro odzkoušení stačí spustit
 
 ```sh
-git checkout https://github.com/mrazekv/church-numbers.git
+git clone https://github.com/mrazekv/church-numbers.git
 cd church-numbers/software
 cp zalm_cache.default.json zalm_cache.json # aktivace olejníkových žalmů
 
-python3 main.py
+cage python3 main.py # spousti v rezimu wayland
 # zadat tři nenulová čísla (viz poznámka na konci odstavce)
 ```
 
@@ -83,7 +84,8 @@ před příkaz `exit 0` následující kód
 ```sh
 #!/bin/sh -e
 plymouth --quit
-cd /home/pi/church-numbers/software; python3 main.py 2>&1 >/dev/null
+cd /home/pi/church-numbers/software; 
+cage python3 main.py 2>&1 >/dev/null
 exit(0)
 ```
 
@@ -115,30 +117,7 @@ sudo reboot # zkusíme, jestli to funguje
 ```
 
 ### Vypínání displeje
-Aby nám fungovalo vypínání displeje po neaktivitě (20 minut po vyplém 000 a 1.5 hodiny po trvale vyplém), je nutné na nejnovějším rasberry se přepnout na starý driver 
-https://github.com/raspberrypi/firmware/issues/1224#issuecomment-1470791044. 
-
-```sh
-sudo nano /boot/firmware/config.txt
-# Change dtoverlay=vc4-kms-v3d to dtoverlay=vc4-fkms-v3d
-sudo reboot
-```
-
-
-Pak by měly fungovat příkazy
-```sh
-vcgencmd display_power 0 # vypnutí
-vcgencmd display_power 1 # zapnutí
-```
-
-Další varianty, které mi ale nefungovaly:
-```sh
-kmsblank -c 0 # nefunguje při zaplém pygame modulu
-
-sudo apt install cec-utils
-echo 'standby 0' | cec-client -s -d 1    # turns OFF
-echo 'on 0' | cec-client -s -d 1         # turns ON
-```
+Aby nám fungovalo vypínání displeje po neaktivitě (20 minut po vyplém 000 a 1.5 hodiny po trvale vyplém),  není nutné přepínat na starý driver, ale pouštět čísla přes `cage` composer. 
 
 
 
