@@ -438,8 +438,8 @@ class displayApp:
 
                     screen.fill(rgb("#000000"))
                 #print("Draw time: ", time.time() - start_time , " s")
-                # pygame.display.flip()  # update all
-                # pygame.event.pump()
+                pygame.display.flip()  # update all
+                pygame.event.pump()
                 # pygame.display.flip()  # update all twice because two buffers?
                 # pygame.event.pump()
                 # pygame.display.flip()  # update all twice because two buffers?
