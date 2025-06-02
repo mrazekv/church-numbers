@@ -76,7 +76,7 @@ Pro nastavení startu programu při bootování systému vložte do souboru
 
 ```sh  
 sudo nano /etc/rc.local
-sudo chmod 0755 /etc/.rc.local
+sudo chmod 0755 /etc/rc.local
 ```
 
 před příkaz `exit 0` následující kód
