@@ -8,8 +8,9 @@ from math import ceil
 from subprocess import Popen, PIPE
 
 import requests
+import yaml
 
-#os.environ["SDL_VIDEODRIVER"] = "kmsdrm"
+# os.environ["SDL_VIDEODRIVER"] = "kmsdrm"
 
 
 def rgb(value):
@@ -23,17 +24,22 @@ class displayApp:
     def __init__(self, is_slave=False):
         self.nmr = 000
         self.part = 0
+        
+        self.reload_config()
+        
+        is_slave = self.display_config.get("is_slave", is_slave)
         self.is_slave = is_slave
+        
         # urls for notification (post) ["http://www.localhost:8080/set_status"]
         if not is_slave:
             # nastaveni master zarizeni: sem se vyjmenuji vsechna zarizeni, ktera maji byt informovana o zmene
-            #self.uris = ["http://192.168.xxx.xxx:8000/set_status"]
-            self.uris = [] # no slave device
+            self.uris = self.display_config.get("slave_uris", [])  # no slave device
         else:
             # nastaveni pro slave zarizeni : prida se adresa masteru, v uris musi byt prazdne
-            self.master = "http://192.168.xxx.xxx:8080"
+            self.master = self.display_config["master_uri"]
             self.uris = []
 
+        print("Display config", self.display_config)
         self.file = ""
         self.fileset = False
         self.config = {}
@@ -50,7 +56,7 @@ class displayApp:
         self.keynmr = 0
         self.keypart = 0
 
-        self.set_scheme(0)
+        self.set_scheme(self.display_config.get("default_color_scheme", "default"))
 
         self.changed = True
 
@@ -61,6 +67,19 @@ class displayApp:
         pygame.init()
         displayInfo = pygame.display.Info()
         print(displayInfo)
+        
+    def reload_config(self):
+        self.config_file = os.path.join(os.path.dirname(__file__), "display_config.yaml")
+        if not os.path.exists(self.config_file):
+            # copy display_config.default.yaml to display_config.yaml
+            default_config_file = os.path.join(os.path.dirname(__file__), "display_config.default.yaml")
+            with open(default_config_file, "r", encoding="utf-8") as f:
+                default_config = yaml.safe_load(f)
+            with open(self.config_file, "w", encoding="utf-8") as f:
+                yaml.dump(default_config, f, allow_unicode=True)
+                
+        with open(self.config_file, "r", encoding="utf-8") as f:
+            self.display_config = yaml.safe_load(f)
 
     def get_status(self):
         return {
@@ -107,50 +126,22 @@ class displayApp:
         self.changed = True
         self.last_change = time.time()
 
-    def set_scheme(self, color):
-        if 0:
-            # zlute pozadi, tmavy text
-            self.config = {
-                "background": rgb("f0e68c"),  # zluta
-                "number": rgb("333333"),
-                "part": rgb("666666"),
-                "file": rgb("666666"),
-            }
-        elif color == 0:
-            # zlute pozadi, tmavy text + oranzova sloka
-            self.config = {
-                "background": rgb("f0e68c"),  # zluta
-                "number": rgb("333333"),
-                "part": rgb("cc3300"),
-                "file": rgb("666666"),
-            }
-
-        elif color == 1:
-            # zlute pozadi, cerveny text, seda sloka
-            self.config = {
-                "background": rgb("f0e68c"),  # zluta
-                "number": rgb("c5000f"),
-                "part": rgb("333133"),
-                "file": rgb("330000"),
-            }
-
-        elif 0:
-            # svetle pozadi, zeleny text
-            self.config = {
-                "background": rgb("#ffffe6"),
-                "number": rgb("006600"),
-                "part": rgb("cc3300"),
-                "file": rgb("666666"),
-            }
-
-        elif 0:
-            # tmave pozadi, zeleny text
-            self.config = {
-                "background": rgb("#000000"),
-                "number": rgb("ffffff"),
-                "part": rgb("cc3300"),
-                "file": rgb("666666"),
-            }
+    def set_scheme(self, color : str):
+        """ Nastavi barevne schema podle name barevneho schematu. """
+        
+        print("Set scheme", color)
+        
+        colors = self.display_config.get("color_schemes", {})
+        conf = colors.get(color, {
+                                  "background": "ffeeee",
+                                  "number": "000000",
+                                  "part": "ff0000",
+                                  "file": "0000ff",
+                                  })
+        
+        # Convert hex strings to RGB tuples
+        self.config = {k: rgb(v) for k, v in conf.items()}
+               
 
     def is_zalm(self):
         if self.nmr == 1 and not self.fileset:
@@ -178,30 +169,46 @@ class displayApp:
             self.fileset = False
             # nmr = oldnmr
             # part = oldpart
-            self.set_scheme(0)
-        if nmr == 999 and change_name:
-            self.file = u"Zpěvníček"
+            self.set_scheme(self.display_config.get("default_color_scheme", "default"))
+            
+            
+        if nmr in self.display_config.get("files", {}) and change_name:
+            c = self.display_config["files"].get(nmr, {"name": "NA", "color_scheme": "default"})
+            self.file = c["name"]
             self.fileset = True
             nmr = oldnmr
             part = oldpart
-            self.set_scheme(1)
- #       if nmr == 3 and change_name:
- #           self.file = "Hosana"
- #           self.fileset = True
- #           nmr = oldnmr
- #           part = oldpart
+            self.set_scheme(c["color_scheme"])
 
         if not self.fileset:
-            # logika sloupskeho zpevniku
-            if nmr in list(range(150, 152)) + list(range(240, 246)) + list(range(340, 342)) + list(range(440, 441)) + list(range(740, 756)) + list(range(880, 893)) + list(range(943, 946)):
-                self.file = u"Sloupský zpěvník"
-            # logika ordinaria
-            elif nmr in range(500, 510):
-                self.file = u"Ordinárium"
-            elif nmr == 990:
-                self.file = "Poutníci naděje"
-            else:
-                self.file = ""
+            self.file = ""
+            for k in self.display_config.get("file_assignment", []):
+                is_set = False
+                if "ranges" in k and "file" in k:
+                    for r in k["ranges"]:
+                        if nmr in range(r[0], r[1] + 1):
+                            is_set = True
+                            
+                if "values" in k and "file" in k:
+                    if nmr in k["values"]:
+                        is_set = True
+                        
+                if is_set:
+                    self.file = k["file"]
+                    break
+                    
+            
+            # # logika sloupskeho zpevniku
+            
+            # if nmr in list(range(150, 152)) + list(range(240, 246)) + list(range(340, 342)) + list(range(440, 441)) + list(range(740, 756)) + list(range(880, 893)) + list(range(943, 946)):
+            #     self.file = u"Sloupský zpěvník"
+            # # logika ordinaria
+            # elif nmr in range(500, 510):
+            #     self.file = u"Ordinárium"
+            # elif nmr == 990:
+            #     self.file = "Poutníci naděje"
+            # else:
+            #     self.file = ""
 
         self.nmr = nmr
         self.part = part
@@ -287,7 +294,7 @@ class displayApp:
             y_offset += fh
 
     def handle_key(self, event):
-        #print("event", event)
+        # print("event", event)
         if event.type == pygame.QUIT:
             return True
 
@@ -321,7 +328,8 @@ class displayApp:
         if state:
             if self.pwr_is_off or force:
                 os.system("wlr-randr --output HDMI-A-1 --off")
-                os.system("wlr-randr --output HDMI-A-1 --on") # neni mozne pustit 2x za sebou
+                # neni mozne pustit 2x za sebou
+                os.system("wlr-randr --output HDMI-A-1 --on")
                 self.pwr_is_off = False
         else:
             if not self.pwr_is_off or force:
@@ -333,10 +341,10 @@ class displayApp:
         modes = pygame.display.list_modes()
         print(modes)
         mode = max(modes)
-        mode = (1920, 1080) # DEBUG
-        screen = pygame.display.set_mode(mode, pygame.FULLSCREEN) # | pygame.OPENGL | pygame.DOUBLEBUF | pygame.HWSURFACE)
+        mode = (1920, 1080)  # DEBUG
+        # screen = pygame.display.set_mode(mode, pygame.FULLSCREEN) # | pygame.OPENGL | pygame.DOUBLEBUF | pygame.HWSURFACE)
 
-        #screen = pygame.display.set_mode(mode)
+        screen = pygame.display.set_mode(mode)
         self.screen = screen
         s_width, s_height = mode
         self.s_width = s_width
@@ -359,13 +367,12 @@ class displayApp:
         if self.is_slave:
             print("is slave")
             if self.last_slave_update + 120 < time.time():
-                #print("do slave update")
+                # print("do slave update")
                 self.last_slave_update = time.time()
                 self.slave_update()
 
         curr_state = False
         while not done:
-            clock.tick(10) # 10 FPS
             if self.is_slave:
                 if self.last_slave_update + 120 < time.time():
                     self.last_slave_update = time.time()
@@ -375,11 +382,11 @@ class displayApp:
                 done = done or self.handle_key(event)
 
             if curr_state != self.get_status() or self.changed:
-                #print(" --- redraw", self.changed)
-                #start_time = time.time()
+                # print(" --- redraw", self.changed)
+                # start_time = time.time()
                 curr_state = self.get_status()
                 self.changed = False
-                #print("Status time: ", time.time() - start_time , " s")
+                # print("Status time: ", time.time() - start_time , " s")
 
                 if curr_state["nmr"]:  # neni vyply displej
                     self.disoff = None
@@ -392,19 +399,22 @@ class displayApp:
                             self.get_zalm(), self.conf("number"))
 
                     elif not curr_state["file"] and not self.part:  # pouze cislo
-                        text = font_large.render(f"{curr_state['nmr']:03d}", True, self.conf("number"))
+                        text = font_large.render(
+                            f"{curr_state['nmr']:03d}", True, self.conf("number"))
 
                         screen.blit(text, ((s_width - text.get_width()) //
                                     2, (s_height + 50 - text.get_height()) // 2))
 
                     else:  # vsechny informace
-                        text = font.render(f"{curr_state['nmr']:03d}", True, self.conf("number"))
+                        text = font.render(
+                            f"{curr_state['nmr']:03d}", True, self.conf("number"))
                         if curr_state["part"] < 10:
                             font2 = font2_large
                         else:
                             font2 = font2_small
 
-                        text2 = font2.render(f"{curr_state['part']}", True, self.conf("part"))
+                        text2 = font2.render(
+                            f"{curr_state['part']}", True, self.conf("part"))
 
                         part_corr = font.get_descent() - font2.get_descent()
 
@@ -416,7 +426,8 @@ class displayApp:
                         corr1 = -text2.get_width() // 2
                         corr2 = text.get_width() // 2
 
-                        if not curr_state["part"]:  # pokud eni cislo sloky, neni potreba posun
+                        # pokud eni cislo sloky, neni potreba posun
+                        if not curr_state["part"]:
                             corr1 = 0
 
                         screen.blit(
@@ -437,27 +448,25 @@ class displayApp:
                         self.disoff = time.time()
 
                     screen.fill(rgb("#000000"))
-                #print("Draw time: ", time.time() - start_time , " s")
-                pygame.display.flip()  # update all
-                pygame.event.pump()
+                # print("Draw time: ", time.time() - start_time , " s")
+                pygame.display.update()  # update all
+                clock.tick(10)  # 10 FPS
                 # pygame.display.flip()  # update all twice because two buffers?
                 # pygame.event.pump()
                 # pygame.display.flip()  # update all twice because two buffers?
                 # pygame.event.pump()
                # pygame.display.update()  # update all
-                #pygame.display.update()  # update all
-                #print("Flip time: ", time.time() - start_time , " s")
-                #pygame.time.delay(1000)
-                #print("Delay time: ", time.time() - start_time , " s")
+                # pygame.display.update()  # update all
+                # print("Flip time: ", time.time() - start_time , " s")
+                # pygame.time.delay(1000)
+                # print("Delay time: ", time.time() - start_time , " s")
 
-                self.notify() # poslat notifikaci o zmene
+                self.notify()  # poslat notifikaci o zmene
             if not curr_state["nmr"]:  # vyply displej bez ohledu na zmenu
                 if not self.pwr_is_off and time.time() - self.disoff > self.offlimit:
                     self.set_power_state(False)
             if not self.pwr_is_off and time.time() - self.last_change > self.totlimit:
                 self.set_power_state(False)
-
-
 
         self.set_power_state(True, force=True)
 

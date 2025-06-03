@@ -4,3 +4,5 @@
 
 *.pyc
 zalm_cache.json
+display_config.yaml
+__pycache__

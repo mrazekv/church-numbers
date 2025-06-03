@@ -1,0 +1,67 @@
+
+# Pro master zarizeni
+is_slave: false
+slave_uris: [] #["http://192.168.xxx.xxx:8000/set_status"]
+
+default_color_scheme: "yellow_dark_text"
+
+# pro slave zarizeni
+#is_slave: true
+#master_uri: "http://192.168.xxx.xxx:8080"
+
+files:
+  999:
+    name: "Zpěvníček"
+    color_scheme: "yellow_red_text"
+  998:
+    name: "Hosana"
+    color_scheme: "light_green_text"
+
+
+# Nastaveni nazvu pisni pro jednotlive rozsahy
+file_assignment:
+  -
+    ranges:
+      - [150, 151]
+      - [240, 245]
+      - [340, 341]
+      - [440, 440]
+      - [740, 755]
+      - [880, 892]
+      - [943, 945]
+    file: "Sloupský zpěvník"
+  -
+    ranges:
+      - [500, 509]
+    file: "Ordinárium"
+  -
+    values: [990]
+    file: "Poutníci naděje"
+  
+
+color_schemes:
+  # This file defines the color schemes for different text and background combinations.
+
+  yellow_dark_text:
+    background: "#f0e68c"
+    number: "#333333"
+    part: "#cc3300"
+    file: "#666666"
+    
+  yellow_red_text:
+    background: "#f0e68c"
+    number: "#c5000f"
+    part: "#333133"
+    file: "#330000"
+
+  light_green_text:
+    background: "#ffffe6"
+    number: "#006600"
+    part: "#cc3300"
+    file: "#666666"
+
+  dark_green_text:
+    background: "#000000"
+    number: "#ffffff"
+    part: "#cc3300"
+    file: "#cccccc"

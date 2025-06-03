@@ -131,6 +131,15 @@ class myHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(appData.display.get_zalm().encode())
             
+        elif self.path == "/reload_config":
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            try:
+                appData.display.reload_config()
+                self.wfile.write("OK".encode())
+            except Exception as e:
+                self.wfile.write(f"FAIL {e}".encode())
+            
         elif self.path == "/get_status":
             self.send_header('Content-type', 'text/json')
             self.end_headers()
