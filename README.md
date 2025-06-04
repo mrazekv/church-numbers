@@ -75,36 +75,6 @@ Program ukončíme stiskem klávesy ESC. V souboru [main.py](software/main.py) m
 
 Pro nastavení startu programu při bootování systému vložte do souboru
 
-sudo vim /usr/local/bin/start_cn.sh
-pi@cisla:~ $ cat /usr/local/bin/start_cn.sh
-#!/bin/bash
-cd /home/pi/church-numbers/software;
-cage python3 main.py 2>&1 >/tmp/display
-
-
- sudo chmod +x /usr/local/bin/start_cn.sh
-
-pi@cisla:~ $ sudo vim /etc/systemd/system/cn.service
-pi@cisla:~ $ cat /etc/systemd/system/cn.service
-[Unit]
-Description=Church numbers
-After=network.target # Adjust dependencies as needed (e.g., if your app needs network)
-
-[Service]
-ExecStart=/usr/local/bin/start_cn.sh
-Type=simple # Or Type=forking, Type=oneshot (see explanation below)
-Restart=on-failure # Optional: Restart if the app crashes
-User=pi # Run as a specific user, not root (recommended for security)
-Group=pi # Optional: Run as a specific group
-
-[Install]
-WantedBy=multi-user.target
-
-
-sudo systemctl daemon-reload
-
-
-
 ```sh  
 sudo nano /etc/rc.local
 sudo chmod 0755 /etc/rc.local
@@ -114,10 +84,23 @@ před příkaz `exit 0` následující kód
      
 ```sh
 #!/bin/sh -e
-plymouth --quit
-cd /home/pi/church-numbers/software; 
-cage python3 main.py 2>&1 >/dev/null
-exit(0)
+(
+    date # timestamp to log
+    plymouth --quit
+    # Wait for Plymouth
+    while pgrep plymouth > /dev/null 2>&1; do sleep 1; done
+    sleep 10
+echo x
+    # Wait for graphics
+    while [ ! -e /dev/dri/card0 ]; do sleep 1; done
+    cd /home/pi/church-numbers/software
+    echo y
+    # Set up environment and start
+    sudo -u pi XDG_RUNTIME_DIR=/run/user/1000 WLR_BACKENDS=drm \
+        cage python3 main.py
+) 2>&1   >/tmp/display
+
+exit 0
 ```
 
 Po restartu můžete zkusit, že aplikace naběhne, stiskem klávesy ESC se dostanete vždy do konzole. V normální provozu však aplikace bude běžet pořád.
@@ -175,11 +158,11 @@ Do nginx konfigurace přidat
 ## Podružný systém
 Systém umožňuje, aby v jedné síti byly dvě zařízení - jedno hlavní a druhé podružné - další displej do jiné části kostela.
 
-Pro tvorbu podružného systému použijte návod výše, spouštějte však `python3 slave.py`. Předtím je však nutné, aby všechna zařízení měla napevno nastavené IP adresy (např v routeru, aby se neměnili). V master zařízení v _display.py_ do paretru uri přidáte adresy všech SLAVE zařízení: `["http://IP_SLAVE_1:8000/set_status", "http://IP_SLAVE_2:8000/set_status", ...]`. Hlavní zařízení využívá port 8080, podružné 8000. Nastavení pak upravte v display_config.yaml
+Pro tvorbu podružného systému použijte návod výše, spouštějte však `python3 slave.py`. Předtím je však nutné, aby všechna zařízení měla napevno nastavené IP adresy (např v routeru, aby se neměnili). V master zařízení v konfiguraci do parametru uri přidáte adresy všech SLAVE zařízení: `["http://IP_SLAVE_1:8000/set_status", "http://IP_SLAVE_2:8000/set_status", ...]`. Hlavní zařízení využívá port 8080, podružné 8000. Podružná zařízení přejímají nastavení barev a podobně. Nastavení pak upravte v display_config.yaml
 
 ## Konfigurace
 V kongifuraci display_config.yaml můžete nastavit vlastní barvy, zpěvníky, barevná schémata. Pro obnovu nastavení, abyste nemuseli pořád restartovat server, volejte "http://../reload_config".
 
 
 ## Zastaralé návody
-V samostatném souboru [WIFI.md](WIFI.md) je návod, jak vytvořit WiFi hotspot přímo na raspberry. Už není využíváno.
+V samostatném souboru [WIFI.md](WIFI.md) je návod, jak vytvořit WiFi hotspot přímo na raspberry. Už není využíváno, umožňuje to přímo `raspi-config`.
