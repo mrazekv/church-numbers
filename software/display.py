@@ -342,7 +342,7 @@ class displayApp:
         print(modes)
         mode = max(modes)
         mode = (1920, 1080)  # DEBUG
-        # screen = pygame.display.set_mode(mode, pygame.FULLSCREEN) # | pygame.OPENGL | pygame.DOUBLEBUF | pygame.HWSURFACE)
+        screen = pygame.display.set_mode(mode, pygame.FULLSCREEN) # | pygame.OPENGL | pygame.DOUBLEBUF | pygame.HWSURFACE)
 
         screen = pygame.display.set_mode(mode)
         self.screen = screen
@@ -450,7 +450,6 @@ class displayApp:
                     screen.fill(rgb("#000000"))
                 # print("Draw time: ", time.time() - start_time , " s")
                 pygame.display.update()  # update all
-                clock.tick(10)  # 10 FPS
                 # pygame.display.flip()  # update all twice because two buffers?
                 # pygame.event.pump()
                 # pygame.display.flip()  # update all twice because two buffers?
@@ -462,6 +461,9 @@ class displayApp:
                 # print("Delay time: ", time.time() - start_time , " s")
 
                 self.notify()  # poslat notifikaci o zmene
+            
+            clock.tick(10)  # 10 FPS
+            
             if not curr_state["nmr"]:  # vyply displej bez ohledu na zmenu
                 if not self.pwr_is_off and time.time() - self.disoff > self.offlimit:
                     self.set_power_state(False)
