@@ -55,7 +55,7 @@ Dále je potřeba do systému doinstalovat tyto nástroje (pygame je hlavní kni
 
 ```sh
 sudo apt-get update
-sudo apt-get install python3-pygame python3-tornado mc vim git libegl-dev cage wlr-randr python3-yaml
+sudo apt-get install python3-pygame python3-tornado mc vim git libegl-dev cage wlr-randr python3-yaml seatd
 ```
 
 ### Nahrání aplikace
@@ -104,6 +104,38 @@ exit 0
 ```
 
 Po restartu můžete zkusit, že aplikace naběhne, stiskem klávesy ESC se dostanete vždy do konzole. V normální provozu však aplikace bude běžet pořád.
+
+Alternativa 
+/etc/systemd/system/cage-app.service
+[Unit]
+Description=Cage Wayland Application
+After=seatd.service plymouth-quit-wait.service
+Requires=seatd.service
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/church-numbers/software
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=WLR_BACKENDS=drm
+Environment=LIBSEAT_BACKEND=seatd
+ExecStartPre=/bin/sleep 15
+ExecStart=/usr/bin/cage python3 main.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
+
+
+  sudo systemctl daemon-reload
+   91  sudo systemctl enable cage-app.service
+   92  # Make sure seatd is enabled and running
+   93  sudo systemctl enable seatd
+   94  sudo systemctl status seatd
+
 
 **Pozor** čísla jsou po startu vyplé, pro zapnutí stačí na numerické klávesnici odeslat nějaké nenulové trojčíslí. Pro vypnutí stačí odeslat kód *000*. Ve vypnutém stavu by odběr měl být minimální (monitoru i rPi). Samozřejmě už můžeme využít wifi
 
