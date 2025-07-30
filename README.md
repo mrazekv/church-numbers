@@ -65,15 +65,17 @@ Přes `git` stáhneme nejnovější verzi aplikace. Pro odzkoušení stačí spu
 git clone https://github.com/mrazekv/church-numbers.git
 cd church-numbers/software
 cp zalm_cache.default.json zalm_cache.json # aktivace olejníkových žalmů
-cp display_config.default.json display_config.json # nastavení konfigurae
+cp display_config.default.yaml display_config.yaml # nastavení konfigurace
 
 cage python3 main.py # spousti v rezimu wayland
-# zadat tři nenulová čísla (viz poznámka na konci odstavce)
+# zadat tři nenulová čísla (viz poznámka na konci odstavce); automaticky se pusti cerna obrazovka (je to ve stavu vypnuto)
 ```
 
 Program ukončíme stiskem klávesy ESC. V souboru [main.py](software/main.py) můžeme zakomentovat např. UART modul, pokud jej nechceme využivat. Nastavení všech barevných konstant naleznete v souboru [display.py](software/display.py), stejně tak můžete doplnit nějakou logiku pro zobrazení názvů zpěvníků atd. Program je psaný v jazyce **Python**, který by měl být jednoduše čitelný. Pozor jen na případnou záměnu mezer za tabulátory, to by mohlo potom program poškodit.
 
-Pro nastavení startu programu při bootování systému vložte do souboru
+
+## Nastavení bootování
+__Starší verze (není podporována v nových systémech)__ Pro nastavení startu programu při bootování systému vložte do souboru
 
 ```sh  
 sudo nano /etc/rc.local
@@ -105,8 +107,11 @@ exit 0
 
 Po restartu můžete zkusit, že aplikace naběhne, stiskem klávesy ESC se dostanete vždy do konzole. V normální provozu však aplikace bude běžet pořád.
 
-Alternativa 
-/etc/systemd/system/cage-app.service
+__Využití služeb__ (lepší varianta)
+Vytvořte soubor s definicí služby v `/etc/systemd/system/cage-app.service`. Počítá se s lokací v /home/pi/church-numbers/software.
+
+```bash
+cat > /etc/systemd/system/cage-app.service <<< EOF
 [Unit]
 Description=Cage Wayland Application
 After=seatd.service plymouth-quit-wait.service
@@ -128,14 +133,17 @@ StandardError=journal
 
 [Install]
 WantedBy=default.target
+EOF
 
+sudo systemctl daemon-reload
+sudo systemctl enable cage-app.service
+# Make sure seatd is enabled and running
+sudo systemctl enable seatd
+sudo systemctl status seatd
+sudo reboot
+```
 
-  sudo systemctl daemon-reload
-   91  sudo systemctl enable cage-app.service
-   92  # Make sure seatd is enabled and running
-   93  sudo systemctl enable seatd
-   94  sudo systemctl status seatd
-
+### Ovládání
 
 **Pozor** čísla jsou po startu vyplé, pro zapnutí stačí na numerické klávesnici odeslat nějaké nenulové trojčíslí. Pro vypnutí stačí odeslat kód *000*. Ve vypnutém stavu by odběr měl být minimální (monitoru i rPi). Samozřejmě už můžeme využít wifi
 
