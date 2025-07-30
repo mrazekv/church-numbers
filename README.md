@@ -5,7 +5,9 @@ Hlavní výhodou těchto čísel je cena (kompletní náklady mohou být do 4000
 
 Pokud se tímto kódem inspirujete, prosím kontaktujte autory pro uvedení referencí. Pokud systém rozšíříte o nějakou zajímavou funkčnost, rádi vaši úpravu zahrneme do hlavní větve. Produkt je šířen pod licencí [GPL](LICENSE) - projekty založené na našem projektu by měli mít stejnou licenci.
 
-Systém nyní umožňuje zadat i žalm (antifonu). V databázi jsou přednahrané všechny Olejníkovy antifony, je možné však zadat a uložit libovolný další text. Při zadání speciálího kódu (999) se přepne na "Zpěvníček" na dětské mše. Vše je samozřejmě konfigurovatelné, u ordinárií se např. zobrazí název, je možné zavést další zpěvníky (např. Hosana atd). Stačí změna pár řádků kódu.
+Systém nyní umožňuje zadat i žalm (antifonu). V databázi jsou přednahrané všechny Olejníkovy antifony, je možné však zadat a uložit libovolný další text. Při zadání speciálího kódu (999) se přepne na "Zpěvníček" na dětské mše. Vše je samozřejmě konfigurovatelné, u ordinárií se např. zobrazí název, je možné zavést další zpěvníky (např. Hosana atd). Stačí změna v [konfiguraci](software/display_config.default.yaml).
+
+Existuje i mechanická klávesnice - více v  [projektu](https://github.com/mrazekv/church-numbers-control).
 
 ![Zobrazení čísla písně a sloky](img/cislo.jpg)
 ![Zobrazení antifony](img/zalm.jpg)
