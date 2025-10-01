@@ -196,6 +196,14 @@ Do nginx konfigurace přidat
     ....
 ```
 
+## Vlastní wifi síť
+```sh 
+sudo nmcli device wifi hotspot ssid **** password ***** ifname wlan0
+sudo nmcli connection
+# Hotspot        70555e97-97d5-4e23-88fe-38e064e99d06  wifi      --
+# a upravit cislo nize
+sudo nmcli connection modify 70555e97-97d5-4e23-88fe-38e064e99d06 connection.autoconnect yes connection.autoconnect-priority 100
+```
 
 ## Podružný systém
 Systém umožňuje, aby v jedné síti byly dvě zařízení - jedno hlavní a druhé podružné - další displej do jiné části kostela.
@@ -207,4 +215,5 @@ V kongifuraci display_config.yaml můžete nastavit vlastní barvy, zpěvníky, 
 
 
 ## Zastaralé návody
+
 V samostatném souboru [WIFI.md](WIFI.md) je návod, jak vytvořit WiFi hotspot přímo na raspberry. Už není využíváno, umožňuje to přímo `raspi-config`.
